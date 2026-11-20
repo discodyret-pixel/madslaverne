@@ -544,7 +544,7 @@ function bgLiving(g){
   R(g,227,107,52,4,OL);R(g,228,108,50,2,'#e7dccb');R(g,232,110,2,6,'#bfb4a2');R(g,272,110,2,6,'#bfb4a2');
   R(g,264,96,3,12,'#a8433c');R(g,267,98,3,10,'#3f7fb5');R(g,270,95,3,13,'#e0b062');R(g,273,99,3,9,'#4f9a4a');
 }
-function bgOffice(g,eve){
+function bgOffice(g,eve,two){
   R(g,0,0,W,FLOOR,eve?'#2c2840':'#5d6b7a');for(let x=0;x<W;x+=16)R(g,x,0,1,FLOOR,eve?'#312c48':'#596676');
   R(g,37,27,56,52,'#2b2830');R(g,40,30,50,46,eve?'#141a3a':'#a8d0e6');R(g,64,30,2,46,'#2b2830');R(g,35,78,60,3,'#e7dccb');
   if(eve){[[46,36],[58,50],[72,40],[84,60],[50,64]].forEach(([a,b])=>R(g,a,b,1,1,'#f3ead8'));R(g,76,34,6,6,'#f3ead8');R(g,78,34,4,4,'#141a3a');}
@@ -565,6 +565,13 @@ function bgOffice(g,eve){
   R(g,213,114,6,11,OL);R(g,214,114,4,11,'#2a2a30');R(g,207,123,18,2,'#2a2a30');R(g,193,85,46,33,OL);R(g,194,86,44,31,'#1c1c22');
   // cardboard box (step)
   R(g,267,141,26,19,OL);R(g,268,142,24,18,'#b98d57');R(g,268,146,24,1,'#8f6a3c');R(g,278,142,4,4,'#d9c08a');
+  if(two){
+    // second gaming seat: chair, desk extension, monitor, LED strip
+    R(g,46,84,100,1,'#7a4fd0');R(g,46,85,100,1,'#4a2f8a');
+    R(g,33,113,7,30,OL);R(g,34,114,5,28,'#26262c');R(g,37,140,26,5,OL);R(g,38,141,24,3,'#26262c');R(g,48,144,3,12,'#3a3a40');R(g,40,156,20,2,'#3a3a40');R(g,40,158,2,2,'#111');R(g,58,158,2,2,'#111');
+    R(g,46,124,103,6,OL);R(g,47,125,102,4,'#3a3a44');R(g,47,125,102,1,'#4a4a56');R(g,50,129,4,31,'#30303a');
+    R(g,113,114,6,11,OL);R(g,114,114,4,11,'#2a2a30');R(g,107,123,18,2,'#2a2a30');R(g,93,85,46,33,OL);R(g,94,86,44,31,'#1c1c22');
+  }
 }
 function bgKitchen(g){
   R(g,0,0,W,FLOOR,'#6a4a3c');for(let y=8;y<FLOOR;y+=16)R(g,0,y,W,1,'#634436');
@@ -950,9 +957,9 @@ function deskScene(eve){
   const onDesk=cat=>cat.onGround&&cat.ground===desk;
   return{desk,box,dS,CH:152,onDesk,inKB:cat=>onDesk(cat)&&cat.x>=160&&cat.x<=192,inMon:cat=>onDesk(cat)&&cat.x>192&&cat.x<=238,bg:makeBg(g=>bgOffice(g,eve))};
 }
-function drawKeyboard(g,rgb,t){
-  R(g,161,121,32,4,OL);R(g,162,122,30,2,rgb?'#2a2a30':'#d9d9de');
-  for(let i=0;i<14;i++)R(g,163+i*2,122,1,1,rgb?['#e8932c','#7a4fd0','#4fb3a0','#e85d7a'][(i+Math.floor(t*6))%4]:'#9aa3a8');
+function drawKeyboard(g,rgb,t,dx=0){
+  R(g,161+dx,121,32,4,OL);R(g,162+dx,122,30,2,rgb?'#2a2a30':'#d9d9de');
+  for(let i=0;i<14;i++)R(g,163+dx+i*2,122,1,1,rgb?['#e8932c','#7a4fd0','#4fb3a0','#e85d7a'][(i+Math.floor(t*6))%4]:'#9aa3a8');
 }
 function makeL6(){
   const D=deskScene(false);
@@ -990,50 +997,67 @@ function makeL6(){
   lv.drawFront=()=>{};
   return lv;
 }
+function drawRaid(g,dx,t,hp,wipe){
+  if(wipe){R(g,196+dx,88,40,27,'#3a0d10');txt(g,'WIPE',216+dx,101,{size:9,col:'#ff6a55',outline:null});return;}
+  const fl=Math.floor(t*4)%2;
+  R(g,196+dx,88,40,27,'#1b1a33');R(g,196+dx,107,40,8,'#2a2c44');
+  for(let i=0;i<5;i++)R(g,199+dx+i*8,104+(i%2),1,3,'#9fd3ea');
+  R(g,212+dx,94+fl,14,11,'#7fae78');R(g,210+dx,92+fl,3,4,'#5f8a58');R(g,225+dx,92+fl,3,4,'#5f8a58');
+  R(g,215+dx,97+fl,2,2,'#151520');R(g,221+dx,97+fl,2,2,'#151520');R(g,216+dx,101+fl,6,1,'#151520');
+  ['#4fb3a0','#e8932c','#e9e4da','#7a4fd0','#e85d7a'].forEach((c,i)=>R(g,199+dx+i*3,109-(Math.floor(t*5+i)%2),2,3,c));
+  if(fl)R(g,208+dx,100,2,1,'#ffd34a');
+  R(g,198+dx,89,36,2,'#3a0d0d');R(g,198+dx,89,Math.round(36*hp),2,'#e0473a');
+  txt(g,'NAXX',229+dx,112,{size:4,col:'#9fd3ea',outline:null,weight:400});
+}
 function makeL7(){
-  const D=deskScene(true);
-  const o=new Owner('Jakob',LOOK.jakob,D.CH,140);o.mode='game';o.pose='sit';o.hold='keys';o.headset=true;
-  const items=[mkItem('chips',249,D.dS,18,{line:'MINE CHIPS!'}),mkItem('kaffe',259,D.dS,14,{line:'Min energidrik!'})];
-  let deskT=0,t=0,talk=3,wipe=false,monSaid=false,heat=0;
-  const lv={plats:[D.desk,D.box],owners:[o],speakers:[o],spawnX:60,bg:D.bg,tint:'rgba(20,10,50,.12)'};
-  const raid=['Heal mig!','Tank, pas på!','Tre procent tilbage!','Ingen AFK nu!','Spred jer!'];
+  const desk={x:47,y:125,w:217},box={x:268,y:142,w:24},dS={x0:47,x1:264,y:125};
+  const J=new Owner('Jakob',LOOK.jakob,152,140),K=new Owner('Kristian',LOOK.kristian,52,140);
+  [J,K].forEach(o=>{o.mode='game';o.pose='sit';o.hold='keys';o.headset=true;o.dir=1;});
+  const items=[mkItem('kop',128,dS,14,{line:'Min kaffe!',who:K}),mkItem('chips',145,dS,18,{line:'VORES chips!',who:J}),mkItem('kaffe',259,dS,14,{line:'Min energidrik!',who:J})];
+  const onDesk=c=>c.onGround&&c.ground===desk;
+  const side=c=>c.x<145?K:J;
+  const inZone=(c,a,b)=>{if(!onDesk(c))return null;for(const o of[K,J]){const r=o===K?a:b;if(c.x>=r[0]&&c.x<=r[1])return o;}return null;};
+  const inKB=c=>inZone(c,[60,92],[160,192]),inMon=c=>inZone(c,[93,138],[193,238]);
+  const raid={J:['Pull om 3… 2… 1!','Tank, pas på!','Naxx, sidste boss!','Ingen AFK nu!'],K:['Heal mig!','Jeg er OOM!','Spred jer!','Vi er SÅ tæt på!']};
+  const shoo={J:['Ikke nu! Vi er midt i bossen!','Mis, jeg TANKER!','To minutter mere!'],K:['Ikke nu, mis! Jeg healer!','Vent til efter bossen!','Ikke tastaturet!']};
+  let deskT=0,t=0,talk=2,wipe=false,monSaid=null,heat=0;
+  const lv={plats:[desk,box],owners:[K,J],speakers:[K,J],spawnX:200,bg:makeBg(g=>bgOffice(g,true,true)),tint:'rgba(20,10,50,.12)'};
   lv.update=(dt,cat)=>{
-    t+=dt;heat=Math.max(0,heat-dt*.8);talk-=dt;if(talk<=0&&!o.bubble){o.say(pick(raid),1.6);talk=5+Math.random()*3;}
-    updateItems(items,[D.dS],dt,(it)=>{it.state='broken';addIrr(it.val);ftext(it.x,FLOOR-16,it.kind==='chips'?'KNAS!':'KLIRR!',CREAM,7);burst(it.x,FLOOR-2,it.kind==='chips'?['#f2cf6a','#e8b84a','#c8423a']:['#3f7fb5','#6b4226'],14,60);SFX.crash();shake(2);o.say(it.line,1.8);});
-    if(D.onDesk(cat))deskT+=dt;else deskT=Math.max(0,deskT-dt*2);
-    if(cat.lie&&D.inKB(cat)){addIrr(10*dt);if(Math.random()<dt*5){ftext(200+Math.random()*30,104,'j','#f3ead8',4);SFX.type();}}
-    if(D.inMon(cat)){addIrr(5*dt);if(!monSaid){monSaid=true;o.say('Jeg kan ikke se bossen!',1.6);}}else monSaid=false;
-    if(deskT>2.4&&D.onDesk(cat)&&!game.ending){
-      deskT=0;cat.lie=false;cat.knock(150,-130,.6);
-      o.say(pick(['Ikke nu! Vi er midt i bossen!','Mis, jeg TANKER!','To minutter mere!']),1.8);SFX.grab();
+    t+=dt;heat=Math.max(0,heat-dt*.8);talk-=dt;
+    if(talk<=0){const o=Math.random()<.5?J:K;if(!o.bubble)o.say(pick(o===J?raid.J:raid.K),1.6);talk=3.5+Math.random()*2.5;}
+    updateItems(items,[dS],dt,(it)=>{it.state='broken';addIrr(it.val);ftext(it.x,FLOOR-16,it.kind==='chips'?'KNAS!':'KLIRR!',CREAM,7);burst(it.x,FLOOR-2,it.kind==='chips'?['#f2cf6a','#e8b84a','#c8423a']:['#3f7fb5','#6b4226','#f1ece2'],14,60);SFX.crash();shake(2);(it.who||J).say(it.line,1.8);});
+    if(onDesk(cat))deskT+=dt;else deskT=Math.max(0,deskT-dt*2);
+    const kb=inKB(cat);
+    if(cat.lie&&kb){addIrr(10*dt);if(Math.random()<dt*5){ftext((kb===K?100:200)+Math.random()*30,104,'j','#f3ead8',4);SFX.type();}}
+    const mo=inMon(cat);
+    if(mo){addIrr(5*dt);if(monSaid!==mo){monSaid=mo;mo.say('Jeg kan ikke se bossen!',1.6);}}else monSaid=null;
+    if(deskT>2.4&&onDesk(cat)&&!game.ending){
+      deskT=0;cat.lie=false;const o=side(cat);cat.knock(o===K?-150:150,-130,.6);
+      o.say(pick(o===J?shoo.J:shoo.K),1.8);SFX.grab();
     }
   };
   lv.action=cat=>{
     if(pushNearest(cat,items))return true;
-    if(D.inKB(cat)){cat.lie=true;ftext(cat.x,cat.y-16,'*lægger sig*','#e9d9b8',5);SFX.knead();return true;}
-    if(Math.abs(cat.x-(o.x+6))<14){
+    if(inKB(cat)){cat.lie=true;ftext(cat.x,cat.y-16,'*lægger sig*','#e9d9b8',5);SFX.knead();return true;}
+    for(const o of[K,J]){
+      if(Math.abs(cat.x-(o.x+6))>=14)continue;
       if(cat.cool>0)return true;cat.cool=.5;cat.busy=.22;cat.busyPose='paw';addIrr(3.5);SFX.paw();heat++;
-      if(heat>=5){heat=0;cat.knock(-140,-120,.8);o.say('NEJ! Væk med poten!',1.6);SFX.grab();return true;}
-      ftext(cat.x+cat.dir*6,cat.y-16,'prik','#e9d9b8',5);if(Math.random()<.35)o.say(pick(['Av! Mis!','Ikke armen!','Jeg misser mine knapper!']),1.4);return true;
+      if(heat>=5){heat=0;cat.knock(o===K?-140:140,-120,.8);o.say('NEJ! Væk med poten!',1.6);SFX.grab();return true;}
+      ftext(cat.x+cat.dir*6,cat.y-16,'prik','#e9d9b8',5);if(Math.random()<.35)o.say(pick(['Av! Mis!','Ikke armen!','Jeg misser mine knapper!']),1.4);
+      return true;
     }
     return false;
   };
   lv.onMeow=()=>addIrr(1);
-  lv.onWin=()=>{wipe=true;o.say('Vi wipede… Okay. Du får snacks.',2.8);};
+  lv.onWin=()=>{wipe=true;J.say('Vi wipede…',2.8);K.say('Okay. Snacks til kattene.',2.8);};
   lv.drawBack=g=>{
-    if(wipe){R(g,196,88,40,27,'#3a0d10');txt(g,'WIPE',216,101,{size:9,col:'#ff6a55',outline:null});}
-    else{
-      const hp=Math.max(0,game.time/LEVELS[game.li].time),fl=Math.floor(t*4)%2;
-      R(g,196,88,40,27,'#2a1840');R(g,196,107,40,8,'#3b2a55');
-      R(g,213,95+fl,15,9,'#c8423a');R(g,226,93+fl,7,5,'#c8423a');R(g,211,92+fl,7,4,'#8f2c2a');R(g,230,94+fl,1,1,'#ffd34a');
-      ['#4fb3a0','#e8932c','#e9e4da','#7a4fd0','#e85d7a'].forEach((c,i)=>R(g,199+i*3,109-(Math.floor(t*5+i)%2),2,3,c));
-      if(fl)R(g,208,100,2,1,'#ffd34a');
-      R(g,198,89,36,2,'#3a0d0d');R(g,198,89,Math.round(36*hp),2,'#e0473a');
-    }
-    drawKeyboard(g,true,t);items.forEach(it=>drawItem(g,it));drawHuman(g,o);
+    const hp=Math.max(0,game.time/LEVELS[game.li].time);
+    drawRaid(g,-100,t,hp,wipe);drawRaid(g,0,t+.3,hp,wipe);
+    drawKeyboard(g,true,t,-100);drawKeyboard(g,true,t);
+    items.forEach(it=>drawItem(g,it));drawHuman(g,K);drawHuman(g,J);
   };
   lv.drawFront=()=>{};
-  lv.hud=g=>{txt(g,'Bossens liv = tiden. Få raidet til at tabe først!',6,172,{size:5,align:'left'});};
+  lv.hud=g=>{txt(g,'Naxx-bossens liv = tiden. Få raidet til at tabe først!',6,172,{size:5,align:'left'});};
   return lv;
 }
 
@@ -1492,11 +1516,11 @@ const LEVELS=[
     tip:{fluffy:'Mr Fluffy kan hoppe direkte op på skrivebordet.',nova:'Nova kommer op via papkassen til højre.'},
     lose:'Kristian nåede sin deadline. Ingen pause, ingen snacks.'},
   {name:'WoW-tiggeren',make:makeL7,time:55,hint:'Få raidet til at tabe!',
-    story:'Jakob er midt i et raid med headset på. Der står chips på skrivebordet. Du er ikke blevet tilbudt nogen.',
-    mission:'Prik ham på armen, læg dig på tastaturet, gå foran skærmen, og skub chipsene ned. Få raidet til at tabe, før bossen dør. Så er der snacks.',
-    warn:'Han kan ikke rejse sig midt i bossen, men han skubber dig ned fra skrivebordet, hvis du bliver for længe.',
+    story:'Kristian og Jakob sidder side om side med headset på, midt i et Naxx-raid. Der står chips mellem dem. Du er ikke blevet tilbudt nogen.',
+    mission:'Prik dem på armen, læg dig på deres tastaturer, gå foran skærmene, og skub chipsene og kopperne ned. Få raidet til at tabe, før Naxx-bossen dør. Så er der snacks.',
+    warn:'De kan ikke rejse sig midt i bossen, men den, du står ved, skubber dig ned fra skrivebordet, hvis du bliver for længe.',
     tip:{fluffy:'Mr Fluffy er hurtigt oppe igen efter hvert skub.',nova:'Nova prikker hårdt. Brug papkassen for at komme op.'},
-    lose:'Bossen døde, og raidet vandt. Jakob er glad. Det er ikke godt.'},
+    lose:'Naxx-bossen døde, og raidet vandt. Kristian og Jakob er glade. Det er ikke godt.'},
   {name:'Zoomies kl. 03',make:()=>makeL1(true),time:75,hint:'ZOOMIES! Løb fra væg til væg!',
     story:'Klokken er 03:00. Noget i dig siger, at du skal løbe. Hurtigt. Nu.',
     mission:'Du løber ekstra hurtigt. Løb fra væg til væg for ZOOM, hop i sengen, vælt ting ned fra kommoden og hylden, og mjav dem i ørerne.',
