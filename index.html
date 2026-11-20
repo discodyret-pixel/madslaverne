@@ -243,6 +243,51 @@ const SFX={
   lose(){[392,330,262].forEach((f,i)=>tone({f,dur:.28,vol:.07,delay:i*.18,type:'triangle'}));}
 };
 
+/* ---------- menu music: original chiptune, A major, 170 bpm ---------- */
+// 8 bars of eighth notes. Melody in MIDI numbers, 0 = rest. Chords give the "oom-pah" left hand.
+const MUSIC_MEL=[
+  69,73,76,81, 0,80,78,76,   74,78,81,78,74, 0,73,71,
+  71,76,80,83, 0,81,80,78,   76, 0,73, 0,69, 0, 0, 0,
+  78,76,73,76,78,81,78, 0,   74, 0,74,78,81, 0,78,74,
+  76,80,83,80,76,75,76,80,   81, 0,69, 0,81, 0, 0, 0
+];
+const MUSIC_CH=[[45,61,64],[50,54,57],[40,56,59],[45,61,64],[42,57,61],[50,54,57],[40,56,59],[45,61,64]];
+const mus={on:false,timer:null,next:0,step:0,gain:null};
+let musicWanted=false;
+const mhz=m=>440*Math.pow(2,(m-69)/12);
+function mnote(m,t,dur,type,vol){
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(mhz(m),t);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(mus.gain);o.start(t);o.stop(t+dur+.02);
+}
+function musicTick(){
+  const e=60/170/2;
+  while(mus.next<AC.currentTime+.25){
+    const s=mus.step,t=mus.next,m=MUSIC_MEL[s],ch=MUSIC_CH[Math.floor(s/8)];
+    if(m){const held=MUSIC_MEL[(s+1)%64]===0;mnote(m,t,held?e*1.8:e*.85,'square',.045);}
+    if(s%2===0)mnote(ch[0],t,e*.9,'triangle',.11);
+    else{mnote(ch[1],t,e*.5,'square',.018);mnote(ch[2],t,e*.5,'square',.018);}
+    mus.next+=e;mus.step=(s+1)%64;
+  }
+}
+function musicStart(){
+  if(mus.on||save.mute||!musicWanted||!AC||AC.state!=='running')return;
+  mus.on=true;mus.gain=AC.createGain();mus.gain.gain.value=.9;mus.gain.connect(AC.destination);
+  mus.next=AC.currentTime+.06;mus.step=0;musicTick();mus.timer=setInterval(musicTick,40);
+}
+function musicStop(){
+  if(!mus.on)return;mus.on=false;clearInterval(mus.timer);
+  const g=mus.gain;g.gain.setTargetAtTime(0,AC.currentTime,.04);setTimeout(()=>{try{g.disconnect();}catch(_){}} ,500);
+}
+function musicKick(){
+  if(!musicWanted||mus.on||save.mute)return;
+  const a=audio();if(!a)return;
+  (a.state==='running'?Promise.resolve():a.resume()).then(musicStart).catch(()=>{});
+}
+function musicWant(w){musicWanted=w;if(w)musicKick();else musicStop();}
+addEventListener('pointerdown',musicKick,true);
+addEventListener('keydown',musicKick,true);
+
 /* ---------- canvas + drawing helpers ---------- */
 const cv=document.getElementById('game');cv.width=W*S;cv.height=H*S;
 const ctx=cv.getContext('2d');
@@ -1572,7 +1617,7 @@ addEventListener('touchstart',()=>document.body.classList.add('touch'),{once:tru
 const btnSound=document.getElementById('btnSound'),btnPause=document.getElementById('btnPause');
 function soundLabel(){btnSound.textContent=save.mute?'Lyd: fra':'Lyd: til';}
 soundLabel();
-btnSound.addEventListener('click',e=>{save.mute=!save.mute;persist();soundLabel();if(!save.mute)SFX.meow();e.currentTarget.blur();});
+btnSound.addEventListener('click',e=>{save.mute=!save.mute;persist();soundLabel();if(save.mute)musicStop();else{SFX.meow();musicKick();}e.currentTarget.blur();});
 document.getElementById('btnHome').addEventListener('click',e=>{e.currentTarget.blur();keys.left=keys.right=keys.down=keys.up=false;goTitle();});
 btnPause.addEventListener('click',e=>{e.currentTarget.blur();if(game.mode==='play')pause();else if(game.mode==='pause')resume();});
 
@@ -1594,11 +1639,11 @@ function act(a,arg){
   else if(a==='pickOwner'){save.owner=arg;game.ownerKind=arg;persist();if(pendingBrief!=null){const i=pendingBrief;pendingBrief=null;goBrief(i);}else goLevels();}
 }
 const starStr=n=>[0,1,2].map(i=>i<n?'★':'<span class="off">★</span>').join('');
-function goTitle(){game.mode='title';game.level=null;setControls(null);
+function goTitle(){game.mode='title';game.level=null;setControls(null);musicWant(true);
   show(`<div class="screen"><p class="eyebrow">Et spil om Mr Fluffy &amp; Nova</p><h1>MADSLAVERNE</h1>
   <p class="lede">Du er en blå british shorthair. Dine mennesker skal irriteres, indtil de giver dig mad.</p>
   <div class="row"><button class="btn" data-act="select" data-primary>Spil</button></div></div>`);}
-function goSelect(){game.mode='select';
+function goSelect(){game.mode='select';musicWant(true);
   const card=k=>{const c=CATS[k];return `<button class="catcard${game.catKind===k?' sel':''}" data-act="pick" data-arg="${k}" ${game.catKind===k?'data-primary':''}>
     <canvas data-cat="${k}" width="200" height="100"></canvas><span class="nm">${c.name}</span><span class="ds">${c.blurb}</span>
     ${Object.entries(c.stats).map(([n,v])=>`<span class="stat"><span>${n}</span><span class="pips">${[1,2,3,4,5].map(i=>`<i class="${i<=v?'on':''}"></i>`).join('')}</span></span>`).join('')}
@@ -1607,14 +1652,14 @@ function goSelect(){game.mode='select';
   overlay.querySelectorAll('canvas[data-cat]').forEach(c=>{const g=c.getContext('2d');g.setTransform(5,0,0,5,0,0);R(g,0,15,40,5,'#2a2842');drawCat(g,c.dataset.cat,20,16,1,'idle',0.5);});
 }
 let pendingBrief=null;
-function goOwner(i){game.mode='select';pendingBrief=i;
+function goOwner(i){game.mode='select';pendingBrief=i;musicWant(true);
   const card=k=>{const c=OWNERS[k],sel=save.owner===k||(!OWNERS[save.owner]&&k==='jakob');return `<button class="catcard${sel?' sel':''}" data-act="pickOwner" data-arg="${k}" ${sel?'data-primary':''}>
     <canvas data-owner="${k}" width="200" height="160" style="aspect-ratio:5/4"></canvas><span class="nm">${c.name}</span><span class="ds">${c.blurb}</span>
     ${Object.entries(c.stats).map(([n,v])=>`<span class="stat"><span>${n}</span><span class="pips">${[1,2,3,4,5].map(x=>`<i class="${x<=v?'on':''}"></i>`).join('')}</span></span>`).join('')}</button>`;};
   show(`<div class="screen"><p class="eyebrow">Kapitel 2 · Vælg din madslave</p><div class="cats">${card('kristian')}${card('jakob')}</div></div>`);
   overlay.querySelectorAll('canvas[data-owner]').forEach(c=>{const g=c.getContext('2d');g.setTransform(3,0,0,3,0,0);R(g,0,51,70,3,'#2a2842');drawHuman(g,new Owner('',OWNERS[c.dataset.owner].look,33,51));});
 }
-function goLevels(){game.mode='levels';game.level=null;setControls(null);
+function goLevels(){game.mode='levels';game.level=null;setControls(null);musicWant(true);
   const tile=(L,i)=>{const lock=i+1>save.unlocked,st=save.stars[i+1]||0;
     return `<button class="lvl" data-act="brief" data-arg="${i}" ${lock?'disabled':''} ${i===Math.min(save.unlocked,LEVELS.length)-1?'data-primary':''}>
       <span class="num">BANE ${i+1}</span><span class="nm">${L.name}</span>${lock?'<span class="soon">Låst</span>':`<span class="st">${starStr(st)}</span>`}</button>`;};
@@ -1632,7 +1677,7 @@ function goBrief(i){
   if(i>=LEVELS.length){goLevels();return;}
   if(LEVELS[i].chapter===2&&!OWNERS[save.owner]){goOwner(i);return;}
   game.ownerKind=save.owner;
-  loadLevel(i);game.mode='brief';const d=LEVELS[i];setControls(d);
+  loadLevel(i);game.mode='brief';const d=LEVELS[i];setControls(d);musicWant(false);
   const ctl=document.body.classList.contains('touch')?(d.pad?`◀ ▶ · ${d.pad.b} · ${d.pad.a}`:'◀ ▶ løb · HOP · BALLADE!'):(d.keys||'← → løb · Mellemrum hop · X ballade · ↓ hop ned');
   show(`<div class="screen light"><div class="brief"><p class="eyebrow">Bane ${i+1} · ${d.chapter===2?ownerK().name:catName()}</p><h2>${d.name}</h2>
     <p class="lede">${d.story}</p>
@@ -1647,7 +1692,7 @@ function setControls(d){
   document.querySelector('[data-pad=jump]').textContent=d&&d.pad?d.pad.b:'HOP';
 }
 function padLabels(){setControls(LEVELS[game.li]);}
-function startPlay(){game.mode='play';hide();queued.jump=queued.action=false;padLabels();}
+function startPlay(){musicWant(false);game.mode='play';hide();queued.jump=queued.action=false;padLabels();}
 function pause(){if(game.mode!=='play')return;game.mode='pause';keys.left=keys.right=keys.down=keys.up=false;
   show(`<div class="screen"><h2>Pause</h2><p class="dim">Madslaverne venter. Det gør de altid.</p>
   <div class="row"><button class="btn" data-act="resume" data-primary>Fortsæt</button><button class="btn ghost" data-act="retry">Start forfra</button><button class="btn ghost" data-act="levels">Baner</button><button class="btn ghost" data-act="title">Hjem</button></div></div>`);}
