@@ -1,0 +1,1758 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Pixel-arkadespil om de blå british shorthairs Mr Fluffy og Nova og deres madslaver Kristian og Jakob.">
+<style>
+/* Base reset (the claude.ai viewer adds this automatically; needed when hosted elsewhere) */
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Madslaverne</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Silkscreen&display=swap">
+<style>
+/* Layout: one centred arcade column: toolbar, 16:9 game stage, touch pad, key legend. Single dark "flat at 5 a.m." look. */
+:root{
+  --night:#1b1a2b;      /* page ground: the flat before sunrise */
+  --panel:#27253b;
+  --line:#403c5c;
+  --cream:#f3ead8;
+  --muted:#aaa3bd;
+  --copper:#e8932c;     /* the cats' eyes */
+  --copper-deep:#a8601a;
+  --fur:#8e98ad;        /* british blue */
+  --display:"Pixelify Sans","Silkscreen",ui-monospace,monospace;
+  --util:"Silkscreen","Pixelify Sans",ui-monospace,monospace;
+  --chrome:150px;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--night);color:var(--cream);font-family:var(--display);-webkit-tap-highlight-color:transparent}
+#app{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#frame{width:min(100%,1000px,calc((100vh - var(--chrome)) * 1.7778));width:min(100%,1000px,calc((100svh - var(--chrome)) * 1.7778));
+  min-width:min(100%,300px);display:flex;flex-direction:column;gap:8px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
+.brand{font-family:var(--util);font-size:13px;letter-spacing:.08em;color:var(--muted)}
+.brand b{color:var(--copper);font-weight:400}
+.tools{display:flex;flex-wrap:wrap;gap:6px}
+.tool{font-family:var(--util);font-size:12px;letter-spacing:.04em;background:var(--panel);color:var(--cream);border:2px solid var(--line);padding:5px 10px;cursor:pointer}
+.tool:hover{border-color:var(--copper)}
+#stage{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;container-type:inline-size;background:#000;
+  box-shadow:0 0 0 3px var(--line),0 12px 0 -2px #121120;overflow:hidden}
+#game{display:block;width:100%;height:100%;touch-action:none}
+#overlay{position:absolute;inset:0}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:max(8px,2cqw);
+  padding:max(10px,3cqw) max(12px,4cqw);background:rgba(24,22,38,.80);overflow-y:auto;text-align:center;box-sizing:border-box}
+.screen.light{background:linear-gradient(90deg,rgba(24,22,38,.92) 0%,rgba(24,22,38,.86) 55%,rgba(24,22,38,.35) 100%);align-items:flex-start;text-align:left}
+.eyebrow{font-family:var(--util);font-size:max(10px,1.7cqw);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+h1{margin:0;font-size:max(30px,10cqw);line-height:.95;font-weight:700;color:var(--copper);text-shadow:.6cqw .6cqw 0 #0e0d18;text-wrap:balance}
+h2{margin:0;font-size:max(18px,4.6cqw);line-height:1.05;font-weight:700;color:var(--cream);text-wrap:balance}
+p{margin:0;font-size:max(11px,2cqw);line-height:1.35;max-width:62ch}
+.lede{color:var(--cream)}
+.dim{color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:max(8px,1.6cqw);justify-content:center}
+.screen.light .row{justify-content:flex-start}
+.btn{font-family:var(--display);font-weight:600;font-size:max(13px,2.3cqw);padding:.45em 1.2em;background:var(--copper);color:#1b1a2b;border:0;
+  box-shadow:0 .25em 0 var(--copper-deep);cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:translateY(.18em);box-shadow:0 .07em 0 var(--copper-deep)}
+.btn.ghost{background:transparent;color:var(--cream);box-shadow:inset 0 0 0 2px var(--line)}
+.btn.ghost:hover{box-shadow:inset 0 0 0 2px var(--copper)}
+:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
+.cats{display:flex;gap:max(8px,2.4cqw);justify-content:center;width:100%}
+.catcard{flex:1 1 0;min-width:0;max-width:300px;background:var(--panel);border:2px solid var(--line);color:var(--cream);padding:max(6px,1.4cqw);
+  display:flex;flex-direction:column;gap:max(4px,.8cqw);text-align:left;cursor:pointer;font-family:var(--display)}
+.catcard:hover,.catcard.sel{border-color:var(--copper)}
+.catcard canvas{width:100%;aspect-ratio:2/1;image-rendering:pixelated;background:#34314f;display:block}
+.catcard .nm{font-size:max(14px,2.8cqw);font-weight:700}
+.catcard .ds{font-size:max(10px,1.6cqw);color:var(--muted);line-height:1.3}
+.stat{display:grid;grid-template-columns:5.5em 1fr;align-items:center;font-family:var(--util);font-size:max(9px,1.3cqw);color:var(--muted)}
+.pips{display:flex;gap:3px}
+.pips i{display:block;width:max(6px,1.2cqw);height:max(6px,1.2cqw);background:#3b3858}
+.pips i.on{background:var(--copper)}
+.levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:max(6px,1.3cqw);width:100%;max-width:88cqw}
+.lvl{background:var(--panel);border:2px solid var(--line);color:var(--cream);font-family:var(--display);text-align:left;padding:max(5px,1.1cqw);
+  display:flex;flex-direction:column;gap:max(2px,.5cqw);cursor:pointer;min-width:0}
+.lvl:hover:not([disabled]){border-color:var(--copper)}
+.lvl[disabled]{cursor:default;opacity:.55}
+.lvl .num{font-family:var(--util);font-size:max(9px,1.3cqw);color:var(--copper)}
+.lvl .nm{font-size:max(11px,1.8cqw);font-weight:600;line-height:1.1;overflow-wrap:anywhere}
+.lvl .st{font-size:max(11px,1.8cqw);letter-spacing:.1em;color:var(--copper)}
+.lvl .st .off{color:#4a4668}
+.lvl .soon{font-family:var(--util);font-size:max(8px,1.1cqw);color:var(--muted)}
+.brief{display:flex;flex-direction:column;gap:max(6px,1.3cqw);max-width:58%}
+.brief dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:max(3px,.7cqw) max(8px,1.4cqw);font-size:max(11px,1.9cqw);line-height:1.3}
+.brief dt{font-family:var(--util);font-size:max(9px,1.3cqw);color:var(--copper);letter-spacing:.06em;padding-top:.25em}
+.brief dd{margin:0}
+.stars{font-size:max(26px,6cqw);letter-spacing:.12em;color:var(--copper);line-height:1}
+.stars .off{color:#4a4668}
+.keys{font-family:var(--util);font-size:11px;color:var(--muted);text-align:center;margin:0;max-width:none}
+.keys kbd{font-family:var(--util);color:var(--cream);background:var(--panel);border:1px solid var(--line);padding:0 4px}
+#pad{display:none;justify-content:space-between;align-items:flex-end;gap:12px;touch-action:none;user-select:none;-webkit-user-select:none}
+.grp{display:grid;gap:8px}
+.grp.dir{grid-template-columns:repeat(3,58px)}
+.grp.act{grid-template-columns:repeat(2,auto)}
+.pad-btn{height:58px;min-width:58px;font-family:var(--util);font-size:13px;background:var(--panel);color:var(--cream);border:2px solid var(--line);
+  border-radius:14px;touch-action:none}
+.pad-btn.big{min-width:96px;background:var(--copper);color:#1b1a2b;border-color:var(--copper-deep)}
+.pad-btn.on{transform:translateY(2px);filter:brightness(.85)}
+body.touch #pad{display:flex}
+body.touch .keys{display:none}
+body.touch{--chrome:200px}
+@media (orientation:landscape) and (max-height:540px){
+  body.touch{--chrome:92px}
+  body.touch #pad{position:fixed;left:0;right:0;bottom:0;pointer-events:none;
+    padding:0 max(10px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+  body.touch .grp{pointer-events:auto}
+  .grp.dir{grid-template-columns:repeat(2,52px)}
+  .grp.dir .down{grid-column:1 / span 2}
+  .grp.act{grid-template-columns:auto}
+  .pad-btn{height:52px;min-width:52px;opacity:.9}
+  .pad-btn.big{min-width:84px}
+}
+@media (max-width:520px){
+  .brief{max-width:100%}
+  .screen.light{background:rgba(24,22,38,.88)}
+  .levels{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:460px){.brand .sub{display:none}.tool{font-size:11px;padding:4px 7px}}
+.screen{justify-content:safe center}
+.btn.mini{font-size:inherit;padding:.15em .6em;box-shadow:inset 0 0 0 2px var(--line)}
+.levels+.eyebrow{margin-top:max(4px,1cqw)}
+@media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="frame">
+    <div class="bar">
+      <span class="brand"><b>MADSLAVERNE</b><span class="sub"> · Mr Fluffy &amp; Nova</span></span>
+      <div class="tools">
+        <button class="tool" id="btnHome" type="button">Hjem</button>
+        <button class="tool" id="btnSound" type="button">Lyd: til</button>
+        <button class="tool" id="btnPause" type="button">Pause</button>
+      </div>
+    </div>
+    <div id="stage">
+      <canvas id="game" aria-label="Spillet Madslaverne"></canvas>
+      <div id="overlay"></div>
+    </div>
+    <div id="pad" aria-label="Touch-knapper">
+      <div class="grp dir">
+        <button class="pad-btn" data-pad="left" type="button" aria-label="Løb til venstre">◀</button>
+        <button class="pad-btn down" data-pad="down" type="button" aria-label="Hop ned">▼</button>
+        <button class="pad-btn" data-pad="right" type="button" aria-label="Løb til højre">▶</button>
+      </div>
+      <div class="grp act">
+        <button class="pad-btn big" data-pad="action" type="button">BALLADE!</button>
+        <button class="pad-btn" data-pad="jump" type="button">HOP</button>
+      </div>
+    </div>
+    <p class="keys" id="keys"><kbd>←</kbd> <kbd>→</kbd> løb · <kbd>Mellemrum</kbd> hop · <kbd>X</kbd> ballade · <kbd>↓</kbd> hop ned · <kbd>P</kbd> pause</p>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const W=320,H=180,S=4,FLOOR=160,GRAV=720;
+const FONT='"Pixelify Sans","Silkscreen",monospace';
+const OL='#1f1d2b';
+const CREAM='#f3ead8', COPPER='#e8932c';
+
+const CATS={
+  fluffy:{name:'Mr Fluffy',speed:84,jump:266,power:1,bodyW:13,bodyH:7,chubby:false,col:'#8e98ad',dark:'#6c768c',light:'#b2bacb',push:'slide',
+    blurb:'Adræt og hurtig. Hopper højt og når de høje hylder.',stats:{Fart:5,Hop:5,Kraft:2}},
+  nova:{name:'Nova',speed:60,jump:220,power:1.35,bodyW:16,bodyH:8,chubby:true,col:'#848ea4',dark:'#646e85',light:'#a8b0c2',push:'shove',
+    blurb:'Tung og stærk. Vælter alt i ét skub og irriterer mere.',stats:{Fart:3,Hop:3,Kraft:5}}
+};
+// Kristian: 180 cm, short grey-flecked hair, red beard round the mouth, grey polo, jeans, orange watch band, big friendly eyes.
+// Jakob: 200 cm, dark short hair styled up 1920s-style, clear rectangular glasses with light frames, smiling, all black.
+const LOOK={
+  kristian:{hair:'#8f8b86',hair2:'#6b6762',shirt:'#8c9099',collar:'#aeb2ba',pants:'#3d5a85',pants2:'#2f4769',shoe:'#2a2a30',skin:'#e7b48f',
+    beard:'#b5532e',watch:'#e07a2c',bigEyes:true,tall:0},
+  jakob:{hair:'#2a221e',hair2:'#2a221e',shirt:'#3a3a44',collar:'#3a3a44',pants:'#2c2c34',pants2:'#202027',shoe:'#151519',skin:'#eab995',
+    glasses:'#dfe4ea',quiff:true,smile:true,tall:5}
+};
+function face(L,P,fx,fy){ // fx,fy = top-left of an 8x9 head facing right
+  P.push([fx,fy+1,8,8,L.skin],[fx,fy,8,3,L.hair],[fx,fy+1,2,(L.quiff?4:6),L.hair],[fx+8,fy+5,1,2,L.skin]);
+  if(L.quiff)P.push([fx+3,fy-2,5,2,L.hair],[fx+6,fy-3,2,1,L.hair]);
+  if(L.hair2!==L.hair)P.push([fx+2,fy,1,1,L.hair2,1],[fx+5,fy+1,1,1,L.hair2,1],[fx,fy+3,1,1,L.hair2,1]);
+  if(L.beard)P.push([fx+4,fy+6,5,3,L.beard,1],[fx+5,fy+8,3,1,L.beard,1],[fx+6,fy+7,2,1,'#7a2f3a',1]);
+  if(L.bigEyes)P.push([fx+4,fy+3,2,2,'#fffaf0',1],[fx+5,fy+3,1,2,'#222',1]);
+  else P.push([fx+5,fy+4,1,1,'#222',1]);
+  if(L.glasses)P.push([fx+3,fy+3,5,1,L.glasses,1],[fx+3,fy+5,5,1,L.glasses,1],[fx+3,fy+3,1,3,L.glasses,1],[fx+7,fy+3,1,3,L.glasses,1],[fx,fy+4,3,1,L.glasses,1]);
+  if(L.smile)P.push([fx+5,fy+7,3,1,'#7a2f3a',1],[fx+4,fy+6,1,1,'#7a2f3a',1]);
+}
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ---------- save ---------- */
+const SAVE_KEY='madslaverne.v1';
+let save={stars:{},unlocked:1,mute:false,cat:'fluffy'};
+try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&typeof s==='object')save=Object.assign(save,s);}catch(e){}
+for(const k in save.stars)if(save.stars[k])save.unlocked=Math.max(save.unlocked,Math.min(17,+k+1));
+function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
+
+/* ---------- audio ---------- */
+let AC=null;
+function audio(){
+  if(save.mute)return null;
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}
+  if(AC.state==='suspended')AC.resume().catch(()=>{});
+  return AC;
+}
+function tone({f=440,f2=null,dur=.15,type='square',vol=.08,delay=0}={}){
+  const a=audio();if(!a)return;const t=a.currentTime+delay;
+  const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+.03);
+}
+function noise({dur=.25,vol=.12,delay=0,lp=3000}={}){
+  const a=audio();if(!a)return;const t=a.currentTime+delay;const n=Math.floor(a.sampleRate*dur);
+  const b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+  const s=a.createBufferSource();s.buffer=b;const fl=a.createBiquadFilter();fl.type='lowpass';fl.frequency.value=lp;
+  const g=a.createGain();g.gain.value=vol;s.connect(fl).connect(g).connect(a.destination);s.start(t);
+}
+const SFX={
+  meow(p=1){tone({f:520*p,f2:860*p,dur:.12,type:'triangle',vol:.1});tone({f:860*p,f2:430*p,dur:.24,type:'triangle',vol:.1,delay:.11});},
+  jump(){tone({f:300,f2:620,dur:.09,vol:.04});},
+  land(){tone({f:150,f2:80,dur:.08,vol:.06,type:'triangle'});},
+  crash(){noise({dur:.35,vol:.2,lp:5200});tone({f:1500,f2:900,dur:.12,vol:.04,delay:.02});},
+  puke(){[0,.32,.64].forEach(d=>noise({dur:.14,vol:.1,lp:700,delay:d}));},
+  splat(){noise({dur:.22,vol:.16,lp:900});tone({f:300,f2:60,dur:.25,type:'sawtooth',vol:.05});},
+  ring(){for(let i=0;i<10;i++)tone({f:1900,dur:.05,vol:.035,delay:i*.07});},
+  grab(){tone({f:520,f2:240,dur:.2,vol:.06});},
+  knead(){tone({f:230,f2:180,dur:.06,vol:.04,type:'triangle'});},
+  paw(){tone({f:700,f2:500,dur:.05,vol:.03,type:'triangle'});},
+  tick(){tone({f:950,dur:.04,vol:.035});},
+  zoom(){tone({f:200,f2:900,dur:.25,vol:.05,type:'sawtooth'});noise({dur:.2,vol:.06,lp:1500});},
+  type(){tone({f:1200+Math.random()*400,dur:.02,vol:.02});},
+  win(){[523,659,784,1046].forEach((f,i)=>tone({f,dur:.2,vol:.07,delay:i*.12}));},
+  lose(){[392,330,262].forEach((f,i)=>tone({f,dur:.28,vol:.07,delay:i*.18,type:'triangle'}));}
+};
+
+/* ---------- canvas + drawing helpers ---------- */
+const cv=document.getElementById('game');cv.width=W*S;cv.height=H*S;
+const ctx=cv.getContext('2d');
+function R(g,x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
+// list of [x,y,w,h,color,noOutline]; drawn mirrored when dir<0, around local x=cx
+function parts(g,list,ox,oy,dir,cx=0,ol=OL){
+  const tr=r=>{let x=r[0]-cx;if(dir<0)x=-(x+r[2]);return[ox+x,oy+r[1],r[2],r[3]];};
+  for(const r of list){if(r[5])continue;const[x,y,w,h]=tr(r);R(g,x-1,y-1,w+2,h+2,ol);}
+  for(const r of list){const[x,y,w,h]=tr(r);R(g,x,y,w,h,r[4]);}
+}
+function txt(g,s,x,y,{size=6,col=CREAM,align='center',outline=OL,alpha=1,weight=600}={}){
+  g.save();g.globalAlpha=alpha;g.font=`${weight} ${size}px ${FONT}`;g.textAlign=align;g.textBaseline='middle';
+  if(outline){g.lineWidth=size/3;g.strokeStyle=outline;g.lineJoin='round';g.strokeText(s,x,y);}
+  g.fillStyle=col;g.fillText(s,x,y);g.restore();
+}
+function bubble(g,x,y,s){
+  g.save();g.font=`600 6px ${FONT}`;const w=Math.ceil(g.measureText(s).width)+8,h=11;
+  const bx=Math.round(Math.max(2,Math.min(W-w-2,x-w/2)));let by=Math.round(y-h-3);if(by<18)by=18;
+  R(g,bx-1,by,w+2,h,OL);R(g,bx,by-1,w,h+2,OL);R(g,bx,by,w,h,'#fffaf0');
+  const tx=Math.round(Math.max(bx+3,Math.min(bx+w-6,x-1)));
+  if(by+h<y){R(g,tx-1,by+h,5,2,OL);R(g,tx,by+h,3,1,'#fffaf0');R(g,tx,by+h+1,2,1,OL);}
+  g.fillStyle=OL;g.textAlign='center';g.textBaseline='middle';g.fillText(s,bx+w/2,by+h/2+.5);g.restore();
+}
+function makeBg(fn){const c=document.createElement('canvas');c.width=W*S;c.height=H*S;const g=c.getContext('2d');g.setTransform(S,0,0,S,0,0);fn(g);return c;}
+
+/* ---------- sprites ---------- */
+function drawCat(g,kind,x,y,dir,pose,t){
+  const k=CATS[kind],bw=k.bodyW,bh=k.bodyH,C=k.col,D=k.dark,L=k.light;
+  const lie=pose==='lie'||pose==='sleep',by=(lie?0:-3)-bh;let hd=0;if(pose==='puke')hd=2;if(pose==='knead')hd=1;
+  const hx=bw-4,ht=by-4+hd,step=Math.floor(t*10)%2,P=[];
+  const sway=pose==='idle'?Math.round(Math.sin(t*2.2)):0;
+  P.push([-3,by+1,4,3,C],[-5,by-2+sway,3,4,C]);
+  const bl=1,fl=bw-5;
+  if(lie){P.push([fl+2,-2,4,2,C]);}
+  else if(pose==='walk'){const o=step?1:-1;P.push([bl+2-o,-3,2,3,D],[fl+2+o,-3,2,3,D],[bl+o,-3,3,3,C],[fl-o,-3,3,3,C]);}
+  else if(pose==='jump'){P.push([bl-2,-4,3,3,D],[fl+3,-5,3,3,D],[bl-1,-3,3,3,C],[fl+4,-4,3,3,C]);}
+  else if(pose==='carried'){P.push([bl,-2,3,4,D],[fl,-2,3,4,D],[bl+2,-1,3,4,C],[fl+2,-1,3,4,C]);}
+  else if(pose==='paw'){P.push([bl+2,-3,2,3,D],[fl+2,-3,2,3,D],[bl,-3,3,3,C],[fl+4,-7,4,3,C]);}
+  else if(pose==='knead'){const o=step?1:0;P.push([bl+2,-3,2,3,D],[fl+2,-3-o,2,3,D],[bl,-3,3,3,C],[fl,-3-(1-o),3,3,C]);}
+  else P.push([bl+2,-3,2,3,D],[fl+2,-3,2,3,D],[bl,-3,3,3,C],[fl,-3,3,3,C]);
+  const sq=(pose==='knead'&&step)?1:0;
+  P.push([1,by+sq,bw-2,bh-sq,C],[0,by+1+sq,bw,bh-2,C]);
+  P.push([hx+1,ht,8,9,C],[hx,ht+1,10,7,C]);
+  if(k.chubby)P.push([hx-1,ht+3,12,5,C]);
+  P.push([hx+1,ht-2,2,2,C],[hx+6,ht-2,2,2,C]);
+  P.push([2,by+1+sq,bw-6,1,L,1],[3,by+bh-1,bw-6,1,D,1],[hx+1,ht+7,4,1,L,1],[hx+2,ht-1,1,1,D,1],[hx+7,ht-1,1,1,D,1]);
+  const blink=pose==='idle'&&(t%4)>3.82;
+  if(pose==='knead'||pose==='stun'||pose==='sleep'||blink)P.push([hx+5,ht+4,2,1,OL,1],[hx+8,ht+4,2,1,OL,1]);
+  else P.push([hx+5,ht+3,2,2,'#f29a2e',1],[hx+6,ht+3,1,2,'#151520',1],[hx+8,ht+3,2,2,'#f29a2e',1],[hx+9,ht+3,1,2,'#151520',1]);
+  P.push([hx+7,ht+5,1,1,'#5a4256',1]);
+  if(pose==='meow'||pose==='puke')P.push([hx+6,ht+6,3,2,'#7a2f3a',1]);
+  const shake=pose==='puke'?(step?1:0):0;
+  parts(g,P,Math.round(x+shake),Math.round(y),dir,Math.floor((bw+1)/2));
+  if(pose==='stun'){for(let i=0;i<3;i++){const a=t*6+i*2.1;R(g,x+Math.cos(a)*7,y-bh-14+Math.sin(a)*2,2,2,'#ffd34a');}}
+}
+function drawHuman(g,o){
+  const L=o.look,P=[],step=Math.floor(o.t*(o.pose==='run'?12:8))%2,pose=o.pose;
+  const ex=L.tall||0,hx=Math.round(ex/2);
+  const watch=(x,y)=>{if(L.watch)P.push([x,y,3,1,L.watch,1]);};
+  if(pose==='sit'){
+    const len=Math.max(4,FLOOR-o.y);
+    P.push([6+hx,0,4,len-2,L.pants],[6+hx,len-2,6,2,L.shoe],[-5,-4,13+hx,5,L.pants],[-6,-17-hx,9,14+hx,L.shirt],[-4,-17-hx,4,1,L.collar,1]);
+    face(L,P,-6,-26-hx);
+    if(o.hold==='paper')P.push([6,-21-hx,10,12,'#ece6d6'],[8,-18-hx,6,1,'#9a948a',1],[8,-15-hx,6,1,'#9a948a',1],[8,-12-hx,4,1,'#9a948a',1],[-2,-13-hx,9,3,L.shirt],[5,-14-hx,2,3,L.skin]);
+    else if(o.hold==='keys'){const b=Math.floor(o.t*7)%2;P.push([-2,-13-hx,12,3,L.shirt],[9,-13-hx+b,3,2,L.skin]);}
+    else if(o.hold==='phone')P.push([-2,-13-hx,9,3,L.shirt],[6,-15-hx,2,3,L.skin],[7,-19-hx,2,5,'#222'],[7,-18-hx,1,3,'#6fb3d6',1]);
+    else P.push([-2,-13-hx,8,3,L.shirt],[5,-13-hx,2,3,L.skin]);
+    watch(4,-13-hx);
+    if(o.headset)P.push([-5,-28-hx,7,1,'#1a1a1a',1],[-5,-27-hx,1,4,'#1a1a1a',1],[-5,-24-hx,3,4,'#7a4fd0',1],[-2,-20-hx,3,1,'#1a1a1a',1]);
+  }else if(pose==='fallen'){
+    P.push([-21-ex,-8,8,8,L.skin],[-23-ex,-8,3,8,L.hair],[-13-ex,-8,13+ex,7,L.shirt],[0,-6,13,5,L.pants],[13,-9,3,7,L.shoe],
+      [-17-ex,-6,1,1,'#222',1],[-15-ex,-6,1,1,'#222',1]);
+    if(L.beard)P.push([-19-ex,-3,4,2,L.beard,1]);
+    if(L.glasses)P.push([-18-ex,-7,5,1,L.glasses,1]);
+  }else if(pose==='clean'){
+    const w=Math.round(Math.sin(o.t*10)*2);
+    P.push([-5,-6,10,6,L.pants],[-8,-2,4,2,L.shoe],[-3,-19-hx,8,13+hx,L.shirt],[5,-13,3,11,L.shirt],[5+w,-2,6,2,'#eef0f2']);
+    face(L,P,0,-28-hx);watch(5,-3);
+  }else{
+    const mv=o.moving&&pose!=='alert';const ai=mv?(step?2:-2)*(pose==='run'?2:1):0;
+    const ly=-14-ex,ll=12+ex,ty=-27-ex;
+    P.push([0-ai,ly,3,ll,L.pants2],[0-ai,-2,5,2,L.shoe],[-3+ai,ly,3,ll,L.pants],[-3+ai,-2,5,2,L.shoe]);
+    P.push([-4,ty,8,14,L.shirt],[-2,ty,5,1,L.collar,1]);
+    face(L,P,-4,ty-9);
+    if(pose==='carry'){P.push([0,ty+2,9,3,L.shirt],[8,ty+2,2,3,L.skin]);watch(6,ty+4);}
+    else if(pose==='alert')P.push([1,ty-17,3,9,L.shirt],[1,ty-19,3,2,L.skin]);
+    else{const s=mv?(step?1:-1):0;P.push([-1+s,ty+1,3,10,L.shirt],[-1+s,ty+11,3,2,L.skin]);watch(-1+s,ty+11);}
+  }
+  parts(g,P,Math.round(o.x),Math.round(o.y),o.dir,0);
+  if(pose==='alert')txt(g,'!',o.x,o.y-48-ex,{size:9,col:'#ffd34a'});
+}
+function bubbleY(s){
+  if(s.hx!==undefined)return s.awake?s.hy-34:s.hy-8;
+  const ex=(s.look&&s.look.tall)||0;
+  return s.y+({sit:-30-ex/2,fallen:-12,clean:-31-ex/2,alert:-50-ex}[s.pose]??-42-ex);
+}
+function bubbleX(s){return s.hx!==undefined?s.hx:s.x;}
+function say(a,text,dur=2.4){a.bubble={text,t:dur};}
+
+/* ---------- entities ---------- */
+class Cat{
+  constructor(kind,x){Object.assign(this,{kind,k:CATS[kind],x,y:FLOOR,vy:0,kvx:0,dir:1,onGround:true,ground:null,stun:0,busy:0,busyPose:'idle',
+    drop:0,carried:null,cool:0,t:Math.random()*3,landed:null,pose:'idle'});}
+  knock(vx,vy,stun){this.kvx=vx;this.vy=vy;this.onGround=false;this.ground=null;this.stun=stun;this.drop=.5;this.busy=0;}
+  update(dt,plats,inp){
+    this.t+=dt;this.cool=Math.max(0,this.cool-dt);this.landed=null;
+    if(this.carried){this.pose='carried';return;}
+    this.stun=Math.max(0,this.stun-dt);this.busy=Math.max(0,this.busy-dt);this.drop=Math.max(0,this.drop-dt);
+    const free=this.stun<=0&&this.busy<=0;let ax=0;
+    if(free){if(inp.left)ax-=1;if(inp.right)ax+=1;}
+    if(this.lie&&(ax||inp.jump||inp.down||!this.onGround))this.lie=false;
+    if(ax)this.dir=ax;
+    if(free&&inp.jump&&this.onGround){this.vy=-this.k.jump;this.onGround=false;this.ground=null;if(inp.sfx)SFX.jump();}
+    if(free&&inp.down&&this.onGround&&this.ground){this.drop=.25;this.onGround=false;this.ground=null;}
+    if(this.kvx){const s=Math.sign(this.kvx);this.kvx-=s*260*dt;if(Math.sign(this.kvx)!==s)this.kvx=0;}
+    let nx=this.x+(ax*this.k.speed*(this.speedMul||1)+this.kvx)*dt;nx=Math.max(8,Math.min(W-8,nx));
+    this.vy+=GRAV*dt;const ny=this.y+this.vy*dt;let land=null;
+    if(this.vy>=0){
+      if(this.drop<=0)for(const p of plats){if(this.y<=p.y+.5&&ny>=p.y&&nx>=p.x-2&&nx<=p.x+p.w+2){if(!land||p.y<land.y)land=p;}}
+      if(!land&&ny>=FLOOR)land={y:FLOOR,floor:true};
+    }
+    if(land){
+      if(!this.onGround){this.landed={p:land,impact:this.vy};if(this.vy>170&&inp.sfx)SFX.land();}
+      this.y=land.y;this.vy=0;this.onGround=true;this.ground=land.floor?null:land;
+    }else{this.y=ny;this.onGround=false;this.ground=null;}
+    this.x=nx;
+    this.pose=!this.onGround?'jump':this.lie?'lie':this.busy>0?this.busyPose:this.stun>0?'stun':ax?'walk':'idle';
+  }
+}
+class Owner{
+  constructor(name,look,x,y=FLOOR){Object.assign(this,{name,look,x,y,dir:1,pose:'stand',t:0,mode:'idle',timer:0,carry:null,moving:false,hold:null,bubble:null});}
+  walkTo(tx,sp,dt){
+    const d=tx-this.x;
+    if(Math.abs(d)<=sp*dt+.01){this.x=tx;this.moving=false;if(this.pose==='walk'||this.pose==='run')this.pose='stand';return true;}
+    this.dir=d>0?1:-1;this.x+=this.dir*sp*dt;this.moving=true;this.pose=sp>50?'run':'walk';return false;
+  }
+  say(text,dur){say(this,text,dur);}
+}
+
+/* ---------- items ---------- */
+function mkItem(kind,x,surf,val,o={}){return Object.assign({kind,x,y:surf.y,surf,val,state:'rest',vy:0,vx:0,slide:0,sdir:1,wob:0,from:null},o);}
+function pushNearest(cat,items){
+  let best=null,bd=1e9;
+  for(const it of items){
+    if(it.state!=='rest'||it.slide>0)continue;
+    if(!cat.onGround||Math.abs(cat.y-it.surf.y)>1)continue;
+    const dx=it.x-cat.x;if(Math.abs(dx)>18||dx*cat.dir<-7)continue;
+    if(Math.abs(dx)<bd){bd=Math.abs(dx);best=it;}
+  }
+  if(!best)return null;
+  best.sdir=cat.dir;best.wob=.3;
+  best.slide=cat.k.push==='shove'?999:(best.heavy?5:10);
+  cat.busy=.22;cat.busyPose='paw';SFX.paw();
+  return best;
+}
+function updateItems(items,surfs,dt,onLand){
+  for(const it of items){
+    it.wob=Math.max(0,it.wob-dt);
+    if(it.state==='rest'&&it.slide>0){
+      const sp=it.slide>100?150:70,m=Math.min(it.slide,sp*dt);it.slide-=m;it.x+=it.sdir*m;
+      if(it.x<it.surf.x0||it.x>it.surf.x1){it.state='fall';it.from=it.surf;it.vx=it.sdir*45;it.vy=-30;it.slide=0;}
+    }else if(it.state==='fall'){
+      it.vy+=GRAV*dt;it.x+=it.vx*dt;const ny=it.y+it.vy*dt;let hit=null;
+      for(const s of surfs){if(s===it.from)continue;if(it.x>=s.x0&&it.x<=s.x1&&it.y<=s.y&&ny>=s.y&&(!hit||s.y<hit.y))hit=s;}
+      if(hit){it.y=hit.y;it.vx=0;it.vy=0;it.state='landed';onLand(it,hit);}
+      else if(ny>=FLOOR){it.y=FLOOR;it.vx=0;it.vy=0;it.state='landed';onLand(it,null);}
+      else it.y=ny;
+    }
+  }
+}
+function shards(g,x,y,c){R(g,x-6,y-1,2,1,c);R(g,x-2,y-2,2,2,c);R(g,x+2,y-1,3,1,c);R(g,x+6,y-1,1,1,c);R(g,x-4,y-1,1,1,OL);}
+function drawItem(g,it){
+  if(it.state==='gone'||it.state==='swept')return;
+  const x=Math.round(it.x),y=Math.round(it.y),w=it.wob>0?(Math.floor(it.wob*30)%2):0,br=it.state==='broken';
+  switch(it.kind){
+    case 'glas':
+      if(br){shards(g,x,y,'#cfeaf4');R(g,x-7,y-1,14,1,'#6fb3d6');}
+      else{R(g,x-3+w,y-9,6,9,OL);R(g,x-2+w,y-8,4,8,'#d6eef6');R(g,x-2+w,y-5,4,4,'#6fb3d6');}
+      break;
+    case 'ur':
+      if(it.state==='down'){R(g,x-7,y-5,14,5,OL);R(g,x-6,y-4,12,4,'#2a2a30');R(g,x-4,y-3,8,1,'#ff5a40');}
+      else{R(g,x-7,y-8,14,8,OL);R(g,x-6,y-7,12,6,'#2a2a30');txt(g,'05:12',x,y-4,{size:4,col:'#ff5a40',outline:null,weight:400});}
+      break;
+    case 'kop':case 'kaffe':{
+      const c=it.kind==='kop'?'#f1ece2':'#3f7fb5';
+      if(br){shards(g,x,y,c);R(g,x-5,y-1,10,1,'#6b4226');}
+      else{R(g,x-4+w,y-7,7,7,OL);R(g,x+3+w,y-6,3,4,OL);R(g,x-3+w,y-6,5,6,c);R(g,x+3+w,y-5,1,2,c);R(g,x-3+w,y-6,5,1,'#6b4226');}
+      break;}
+    case 'telefon':
+      if(br){R(g,x-6,y-2,12,2,'#222');R(g,x-3,y-2,3,1,'#9fd3ea');R(g,x+1,y-3,1,1,'#9fd3ea');}
+      else{R(g,x-6+w,y-3,12,3,OL);R(g,x-5+w,y-2,10,1,'#2a2a30');R(g,x-4+w,y-3,7,1,'#6fb3d6');}
+      break;
+    case 'fjern':
+      if(br){R(g,x-7,y-2,6,2,'#333');R(g,x+1,y-2,6,2,'#333');R(g,x-2,y-1,1,1,'#e44');}
+      else{R(g,x-7+w,y-3,14,3,OL);R(g,x-6+w,y-2,12,1,'#3a3a44');R(g,x+3+w,y-3,1,1,'#e44');}
+      break;
+    case 'plante':
+      if(br){R(g,x-9,y-2,18,2,'#5a3a22');R(g,x-5,y-3,3,1,'#b5603a');R(g,x+2,y-3,4,2,'#b5603a');R(g,x-2,y-5,3,3,'#4f9a4a');R(g,x+5,y-4,2,2,'#4f9a4a');}
+      else{R(g,x-5+w,y-8,10,8,OL);R(g,x-4+w,y-7,8,7,'#b5603a');R(g,x-4+w,y-7,8,1,'#d27a4f');
+        R(g,x-7+w,y-17,14,10,OL);R(g,x-6+w,y-16,12,8,'#4f9a4a');R(g,x-3+w,y-19,5,4,OL);R(g,x-2+w,y-18,3,3,'#64b35e');R(g,x+1+w,y-14,4,2,'#3d7e3a');}
+      break;
+    case 'chips':
+      if(br){R(g,x-8,y-1,16,1,'#e8b84a');R(g,x-5,y-2,2,1,'#f2cf6a');R(g,x+2,y-2,3,1,'#f2cf6a');R(g,x-1,y-1,3,1,'#c8423a');}
+      else{R(g,x-6+w,y-5,12,5,OL);R(g,x-5+w,y-4,10,4,'#c8423a');R(g,x-4+w,y-6,8,2,'#f2cf6a');R(g,x-2+w,y-7,3,1,'#e8b84a');}
+      break;
+    case 'vase':
+      if(br){shards(g,x,y,'#3f7fb5');R(g,x-6,y-2,4,1,'#e85d7a');R(g,x+3,y-2,3,1,'#ffd34a');}
+      else{R(g,x-4+w,y-12,8,12,OL);R(g,x-3+w,y-11,6,11,'#3f7fb5');R(g,x-2+w,y-8,4,1,'#9cc5e6');
+        R(g,x-1+w,y-16,1,5,'#4f9a4a');R(g,x+2+w,y-15,1,4,'#4f9a4a');R(g,x-2+w,y-18,3,3,'#e85d7a');R(g,x+1+w,y-17,3,3,'#ffd34a');}
+      break;
+  }
+}
+
+/* ---------- backgrounds ---------- */
+function floorBoards(g,col,seam){R(g,0,FLOOR,W,H-FLOOR,col);for(let y=FLOOR+5;y<H;y+=5)R(g,0,y,W,1,seam);
+  for(let r=0;r<4;r++)for(let x=(r*23)%40;x<W;x+=40)R(g,x,FLOOR+r*5,1,5,seam);}
+function bgBedroom(g,night){
+  R(g,0,0,W,FLOOR,night?'#1b1e36':'#2b2f4d');for(let x=6;x<W;x+=14)R(g,x,0,1,FLOOR,night?'#1f2340':'#30355a');
+  const wx=82,wy=36,ww=46,wh=50,band=night?['#0b0d24','#0f122c','#131735','#171c3e','#1c2246','#20274e']:['#3a3f6e','#58508a','#8a5f8c','#c8707a','#ef9a6a','#f6c47c'];
+  R(g,wx-3,wy-3,ww+6,wh+6,'#1d2036');band.forEach((c,i)=>R(g,wx,wy+Math.floor(i*wh/6),ww,Math.ceil(wh/6)+1,c));
+  if(night){R(g,wx+8,wy+6,7,7,'#f3ead8');R(g,wx+10,wy+6,5,5,'#0f122c');[[30,8],[38,30],[6,32],[20,40],[40,14]].forEach(([a,b])=>R(g,wx+a,wy+b,1,1,'#f3ead8'));
+    R(g,148,92,54,4,OL);R(g,149,93,52,2,'#7d573c');R(g,153,95,2,6,'#5a3c28');R(g,195,95,2,6,'#5a3c28');}
+  else R(g,wx+30,wy+38,8,4,'#ffe2a0');R(g,wx+ww/2-1,wy,2,wh,'#1d2036');R(g,wx,wy+wh/2-1,ww,2,'#1d2036');R(g,wx-5,wy+wh+2,ww+10,3,'#cfc4b4');
+  R(g,wx-13,wy-7,9,wh+16,'#6e3a4a');R(g,wx+ww+4,wy-7,9,wh+16,'#6e3a4a');R(g,wx-16,wy-9,ww+32,3,'#4a3324');
+  // framed portrait of two blue cats
+  R(g,168,58,32,24,'#c9a15a');R(g,170,60,28,20,'#e9e4da');R(g,175,68,8,10,'#8e98ad');R(g,186,66,9,12,'#848ea4');R(g,176,64,6,5,'#8e98ad');R(g,187,62,7,6,'#848ea4');
+  R(g,177,66,1,1,COPPER);R(g,180,66,1,1,COPPER);R(g,188,64,1,1,COPPER);R(g,191,64,1,1,COPPER);
+  floorBoards(g,'#5c4433','#4e392b');R(g,0,FLOOR-4,W,4,'#7a6e86');
+  // dresser + basket + nightstand
+  R(g,19,117,48,43,OL);R(g,20,120,46,40,'#6b4a33');R(g,18,117,50,3,'#7d573c');
+  for(let i=0;i<3;i++){R(g,23,124+i*12,40,10,'#5e4029');R(g,41,128+i*12,4,2,'#c9a15a');}
+  R(g,26,106,10,11,'#e8932c');R(g,28,103,6,3,'#f3ead8');R(g,50,110,10,7,'#d6c9b2');
+  R(g,92,146,18,14,OL);R(g,93,147,16,13,'#b98d57');for(let x=95;x<108;x+=3)R(g,x,148,1,11,'#8f6a3c');R(g,91,145,20,2,'#a07a48');R(g,96,141,9,5,'#5f8ac2');
+  R(g,261,123,32,37,OL);R(g,262,124,30,36,'#6b4a33');R(g,260,123,34,3,'#7d573c');R(g,265,132,24,10,'#5e4029');R(g,275,136,4,2,'#c9a15a');
+}
+function bgLiving(g){
+  R(g,0,0,W,FLOOR,'#4b5d50');for(let x=0;x<W;x+=20)R(g,x,0,10,FLOOR,'#475848');R(g,0,110,W,2,'#3e4e42');
+  R(g,117,27,56,52,'#2e3a30');R(g,120,30,50,46,'#a8d0e6');R(g,128,40,16,4,'#eef6fb');R(g,150,52,12,3,'#eef6fb');
+  R(g,144,30,2,46,'#2e3a30');R(g,120,52,50,2,'#2e3a30');R(g,115,78,60,3,'#e7dccb');
+  R(g,26,62,20,24,'#c9a15a');R(g,28,64,16,20,'#e9e4da');R(g,31,72,9,4,'#e8932c');R(g,40,73,3,2,'#e8932c');R(g,33,73,1,1,OL);
+  R(g,56,70,26,18,'#2b2018');R(g,58,72,22,14,'#6fa3c0');R(g,58,80,22,6,'#4f9a4a');
+  // kitchen doorway
+  R(g,282,36,38,124,'#3a2f28');R(g,286,40,34,120,'#d9d2c2');for(let y=44;y<100;y+=8)for(let x=286;x<320;x+=8)R(g,x,y,7,7,'#cfc7b4');
+  R(g,300,66,20,94,'#e9eef0');R(g,300,100,20,1,'#b8c0c4');R(g,302,74,1,10,'#9aa3a8');
+  floorBoards(g,'#8a6446','#7a573c');R(g,0,FLOOR-4,282,4,'#e7dccb');
+  // rug
+  R(g,108,160,94,6,'#a8433c');for(let x=112;x<200;x+=8)R(g,x,162,4,2,'#e0b062');R(g,108,166,94,1,'#7e3029');
+  // sofa
+  R(g,9,111,90,46,OL);R(g,16,112,76,28,'#2f6f7a');R(g,20,116,32,20,'#357b87');R(g,56,116,32,20,'#357b87');
+  R(g,10,124,8,24,'#2a636d');R(g,90,124,8,24,'#2a636d');R(g,16,138,76,8,'#3d8693');R(g,12,146,86,10,'#2a5f69');R(g,16,156,3,4,'#2b2018');R(g,89,156,3,4,'#2b2018');
+  R(g,22,132,12,6,'#e8932c');
+  // armchair + wall shelf
+  R(g,217,111,38,46,OL);R(g,246,112,8,40,'#9c5636');R(g,220,138,30,8,'#b8693f');R(g,218,128,5,20,'#9c5636');R(g,220,146,32,8,'#874a2e');R(g,222,154,3,6,'#2b2018');R(g,247,154,3,6,'#2b2018');
+  R(g,227,107,52,4,OL);R(g,228,108,50,2,'#e7dccb');R(g,232,110,2,6,'#bfb4a2');R(g,272,110,2,6,'#bfb4a2');
+  R(g,264,96,3,12,'#a8433c');R(g,267,98,3,10,'#3f7fb5');R(g,270,95,3,13,'#e0b062');R(g,273,99,3,9,'#4f9a4a');
+}
+function bgOffice(g,eve){
+  R(g,0,0,W,FLOOR,eve?'#2c2840':'#5d6b7a');for(let x=0;x<W;x+=16)R(g,x,0,1,FLOOR,eve?'#312c48':'#596676');
+  R(g,37,27,56,52,'#2b2830');R(g,40,30,50,46,eve?'#141a3a':'#a8d0e6');R(g,64,30,2,46,'#2b2830');R(g,35,78,60,3,'#e7dccb');
+  if(eve){[[46,36],[58,50],[72,40],[84,60],[50,64]].forEach(([a,b])=>R(g,a,b,1,1,'#f3ead8'));R(g,76,34,6,6,'#f3ead8');R(g,78,34,4,4,'#141a3a');}
+  else{R(g,46,40,14,4,'#eef6fb');R(g,70,56,12,3,'#eef6fb');}
+  if(eve){R(g,146,84,120,1,'#7a4fd0');R(g,146,85,120,1,'#4a2f8a');}
+  else{R(g,108,50,24,18,'#c9a15a');R(g,110,52,20,14,'#e9e4da');R(g,113,56,6,8,'#8e98ad');R(g,121,58,6,6,'#848ea4');}
+  // bookcase
+  R(g,295,58,26,102,OL);R(g,296,60,24,100,'#6b4a33');for(let y=62;y<158;y+=24){R(g,298,y+20,20,2,'#5a3c28');
+    ['#a8433c','#3f7fb5','#e0b062','#4f9a4a','#c8423a'].forEach((c,i)=>R(g,299+i*4,y+6+(i%2),3,14-(i%2),c));}
+  floorBoards(g,eve?'#4a3a33':'#8a6446',eve?'#3f312b':'#7a573c');R(g,0,FLOOR-4,294,4,eve?'#5a5070':'#e7dccb');
+  // office chair
+  R(g,133,113,7,30,OL);R(g,134,114,5,28,'#26262c');R(g,137,140,26,5,OL);R(g,138,141,24,3,'#26262c');R(g,148,144,3,12,'#3a3a40');R(g,140,156,20,2,'#3a3a40');R(g,140,158,2,2,'#111');R(g,158,158,2,2,'#111');
+  // desk
+  R(g,147,124,118,6,OL);R(g,148,125,116,4,eve?'#3a3a44':'#c9b08a');R(g,148,125,116,1,eve?'#4a4a56':'#dcc49e');
+  R(g,226,129,36,31,OL);R(g,227,129,34,31,eve?'#30303a':'#b59c78');R(g,231,136,26,1,eve?'#24242c':'#9a8466');R(g,242,140,4,2,'#888');
+  R(g,150,129,4,31,eve?'#30303a':'#9a8466');
+  // monitor stand
+  R(g,213,114,6,11,OL);R(g,214,114,4,11,'#2a2a30');R(g,207,123,18,2,'#2a2a30');R(g,193,85,46,33,OL);R(g,194,86,44,31,'#1c1c22');
+  // cardboard box (step)
+  R(g,267,141,26,19,OL);R(g,268,142,24,18,'#b98d57');R(g,268,146,24,1,'#8f6a3c');R(g,278,142,4,4,'#d9c08a');
+}
+function bgKitchen(g){
+  R(g,0,0,W,FLOOR,'#6a4a3c');for(let y=8;y<FLOOR;y+=16)R(g,0,y,W,1,'#634436');
+  R(g,58,26,52,46,'#3b2a22');R(g,61,29,46,40,'#9fc6dd');R(g,61,52,46,17,'#7fae78');R(g,83,29,2,40,'#3b2a22');R(g,56,72,56,3,'#e7dccb');
+  R(g,178,0,1,30,'#2a201a');R(g,170,30,17,7,OL);R(g,171,30,15,6,COPPER);R(g,174,36,9,1,'#ffe2a0');
+  // armchair (owner's)
+  R(g,15,113,52,44,OL);R(g,16,114,10,40,'#55724f');R(g,20,140,44,8,'#66855f');R(g,58,128,6,20,'#4a6545');R(g,18,148,46,8,'#43593f');R(g,20,156,3,4,'#2b2018');R(g,58,156,3,4,'#2b2018');
+  // shelf, counter, upper cabinet
+  R(g,219,95,58,4,OL);R(g,220,96,56,2,'#e7dccb');R(g,224,98,2,6,'#bfb4a2');R(g,270,98,2,6,'#bfb4a2');
+  R(g,287,129,33,31,OL);R(g,288,131,32,29,'#d8cfbf');R(g,286,128,34,3,'#5a5a62');R(g,292,138,24,1,'#b9ae99');R(g,302,142,4,2,'#8a8a92');
+  R(g,287,39,33,42,OL);R(g,288,40,32,40,'#d8cfbf');R(g,303,40,1,40,'#b9ae99');R(g,298,58,2,4,'#8a8a92');R(g,306,58,2,4,'#8a8a92');
+  for(let x=288;x<320;x+=8)for(let y=82;y<128;y+=8)R(g,x,y,7,7,'#cfd6d8');
+  // floor tiles
+  for(let x=0;x<W;x+=10)for(let y=FLOOR;y<H;y+=10)R(g,x,y,10,10,((x+y)/10)%2?'#cfc6b4':'#b9ae99');
+  R(g,0,FLOOR-4,286,4,'#4b3328');
+  // dining table + chair
+  R(g,126,131,108,6,OL);R(g,127,132,106,4,'#8a5a3a');R(g,132,136,4,24,'#6e472d');R(g,224,136,4,24,'#6e472d');R(g,127,132,106,1,'#a06c48');
+  R(g,97,117,5,43,OL);R(g,98,118,3,42,'#6e472d');R(g,99,143,24,4,OL);R(g,100,144,22,2,'#8a5a3a');R(g,118,146,3,14,'#6e472d');
+}
+
+/* ---------- game state ---------- */
+const game={ownerKind:save.owner||null,mode:'title',catKind:CATS[save.cat]?save.cat:'fluffy',li:0,level:null,cat:null,irr:0,time:0,t:0,texts:[],fx:[],shake:0,ending:null,introT:0,lastTick:99};
+const power=()=>CATS[game.catKind].power;
+const catName=()=>CATS[game.catKind].name;
+function addIrr(v){game.irr=Math.min(100,game.irr+v*power());}
+function ftext(x,y,s,col=CREAM,size=6){game.texts.push({x,y,s,col,size,t:1.2});}
+function burst(x,y,cols,n=10,sp=60){for(let i=0;i<n;i++)game.fx.push({x,y,vx:(Math.random()*2-1)*sp,vy:-Math.random()*sp-20,t:.5+Math.random()*.4,c:cols[i%cols.length]});}
+function shake(a=3){game.shake=Math.max(game.shake,a);}
+function grab(o,cat,x,line,done){o.carry={x,done};cat.carried=o;cat.busy=0;cat.kvx=0;cat.lie=false;o.say(line,2.2);SFX.grab();}
+
+/* ---------- level 1: Væk madslaverne ---------- */
+function makeL1(night=false){
+  const bed={x:118,y:130,w:136},ns={x:262,y:124,w:30},dresser={x:20,y:117,w:46},basket={x:92,y:146,w:18},shelfP={x:149,y:93,w:52};
+  const nsS={x0:262,x1:292,y:124},bedS={x0:118,x1:254,y:130,bed:true},dresserS={x0:20,x1:66,y:117},shelfS={x0:149,x1:201,y:93};
+  const K={name:'Kristian',look:LOOK.kristian,hx:233,hy:127,wake:0,awake:false,shove:0,bubble:null,zz:0};
+  const J={name:'Jakob',look:LOOK.jakob,hx:246,hy:124,wake:0,awake:false,shove:0,bubble:null,zz:.7};
+  const SL=[K,J];
+  const items=[mkItem('glas',269,nsS,16),mkItem('ur',283,nsS,24)];
+  if(night)items.push(mkItem('kop',42,dresserS,14),mkItem('plante',60,dresserS,18,{heavy:true}),mkItem('vase',176,shelfS,22,{heavy:true}));
+  let bounce=0,idle=0,side=null;
+  const sleepy=night?['Klokken er TRE…','Hvad er det for en LYD?!','Zzz… stop med at løbe…','Hvorfor er du sådan?…']:['Mmh… fem minutter mere…','Nej… sov nu…','Zzz… gå væk…','Ikke nu, mis…','Det er weekend…'];
+  function wake(s,v){
+    if(s.awake)return;s.wake=Math.min(100,s.wake+v*power());idle=0;
+    if(s.wake>=100){s.awake=true;say(s,night?(s===K?'Okay, okay… snacks!':'Vi går ud i stuen…'):(s===K?'Ja ja, JEG ER VÅGEN!':'Okay! Vi står op!'),2.6);burst(s.hx,s.hy-20,[COPPER,CREAM],8,40);}
+  }
+  const wakeAll=v=>SL.forEach(s=>wake(s,v));
+  function shoveOff(s,cat){
+    cat.knock(-250,-150,.9);say(s,pick(sleepy),2.2);s.wake=Math.max(0,s.wake-8);SL.forEach(x=>x.shove=0);SFX.grab();
+  }
+  function lap(cat){wakeAll(10);ftext(cat.x,cat.y-20,'ZOOOM!',COPPER,8);shake(2);SFX.zoom();}
+  const lv={plats:night?[bed,ns,dresser,basket,shelfP]:[bed,ns,dresser,basket],owners:[],speakers:SL,spawnX:44,bg:makeBg(g=>bgBedroom(g,night)),catSpeed:night?1.45:1,tint:night?'rgba(8,10,40,.30)':null};
+  lv.irritation=()=>(K.wake+J.wake)/2;
+  lv.onMeow=()=>wakeAll(1.2);
+  lv.update=(dt,cat)=>{
+    idle+=dt;if(night&&cat.pose==='walk')idle=Math.min(idle,.5);bounce=Math.max(0,bounce-dt*5);
+    for(const s of SL){if(s.awake)continue;s.wake=Math.max(0,s.wake-(night?(idle>1.5?3.4:1.5):(idle>1.5?3:1.1))*dt);s.zz+=dt;if(s.zz>1.5){s.zz=0;ftext(s.hx+5,s.hy-10,'z','#c9c3e8',5);}}
+    if(cat.landed&&cat.landed.p===bed&&cat.landed.impact>170){wakeAll(4);bounce=1;ftext(cat.x,cat.y-18,'BUMP!');}
+    if(cat.onGround&&cat.ground===bed){
+      const inHead=cat.x>=222;
+      for(const s of SL){if(s.awake||s.wake<20)continue;const near=inHead&&Math.abs(cat.x-s.hx)<12;s.shove+=dt*(near?1:.4);if(s.shove>2.8){shoveOff(s,cat);break;}}
+    }else SL.forEach(s=>s.shove=Math.max(0,s.shove-dt));
+    if(night){if(cat.x<26){if(side==='R')lap(cat);side='L';}else if(cat.x>294){if(side==='L')lap(cat);side='R';}}
+    updateItems(items,[nsS,bedS,dresserS,shelfS],dt,(it,surf)=>{
+      if(it.kind==='ur'){it.state='down';ftext(it.x,it.y-14,'RIIIING!','#ff8a6a',7);SFX.ring();shake(2);wakeAll(it.val);return;}
+      if(surf&&surf.bed){it.state='gone';ftext(it.x,it.y-12,'VAND I SENGEN!','#9fd3ea');burst(it.x,it.y,['#6fb3d6','#cfeaf4'],12);SFX.splat();wakeAll(it.val+6);return;}
+      it.state='broken';ftext(it.x,it.y-14,'KLIRR!','#cfeaf4',7);burst(it.x,it.y-2,['#cfeaf4','#6fb3d6'],12);SFX.crash();shake(2);wakeAll(it.val);
+    });
+  };
+  lv.action=cat=>{
+    if(cat.onGround&&(cat.ground===ns||cat.ground===dresser||cat.ground===shelfP)){if(pushNearest(cat,items))return true;}
+    if(cat.onGround&&cat.ground===bed){
+      if(cat.cool>0)return true;
+      if(cat.x>=222){
+        const tg=SL.filter(s=>!s.awake).sort((a,b)=>Math.abs(a.hx-cat.x)-Math.abs(b.hx-cat.x))[0];if(!tg)return false;
+        cat.cool=.4;cat.busy=.25;cat.busyPose='meow';wake(tg,11);SL.forEach(s=>{if(s!==tg)wake(s,2);});
+        SFX.meow(cat.kind==='nova'?.9:1.2);ftext(cat.x+cat.dir*6,cat.y-20,`MJAV, ${tg.name}!`);return true;
+      }
+      cat.cool=.33;cat.busy=.3;cat.busyPose='knead';wakeAll(3.4);SFX.knead();ftext(cat.x,cat.y-14,'trip trap','#e9d9b8',5);return true;
+    }
+    return false;
+  };
+  lv.onWin=()=>{};
+  function drawSleeper(g,s,b){
+    const L=s.look;
+    if(s.awake){const P=[[-5,-17,9,18,L.shirt]];face(L,P,-4,-26);parts(g,P,s.hx,s.hy+b+3,-1,0);}
+    else{
+      const P=[[-4,-6,8,6,L.skin],[3,-7,3,8,L.hair],[-2,-4,2,1,'#3a2a22',1],[-5,-5,1,1,L.skin]];
+      if(L.beard)P.push([-4,-3,2,3,L.beard,1],[-3,-1,3,1,L.beard,1]);
+      if(L.glasses)P.push([-3,-5,4,1,L.glasses,1],[-3,-3,4,1,L.glasses,1]);
+      parts(g,P,s.hx,s.hy+b,1,0);
+    }
+  }
+  lv.drawBack=g=>{
+    const b=bounce>.5?1:0;
+    R(g,253,103,9,57,OL);R(g,254,104,7,56,'#5a3c28');R(g,253,102,9,3,'#7d573c');
+    R(g,113,121,7,39,OL);R(g,114,122,5,38,'#5a3c28');
+    R(g,118,138,136,10,'#6b4a33');R(g,120,148,4,12,'#5a3c28');R(g,248,148,4,12,'#5a3c28');
+    R(g,118,131+b,136,8,'#e9e4da');
+    R(g,221,120+b,33,9,OL);R(g,222,121+b,31,7,'#f4f1ea');
+    drawSleeper(g,J,b);drawSleeper(g,K,b);
+    R(g,117,125+b,110,14,OL);R(g,118,126+b,108,12,'#d39b4a');R(g,136,123+b,80,3,OL);R(g,137,124+b,78,2,'#d39b4a');
+    R(g,224,128+b,30,10,'#d39b4a');R(g,224,127+b,30,1,OL);
+    for(let x=122;x<252;x+=9)R(g,x,131+b+((x/9)%2?2:0),2,2,'#e7b86a');
+    items.forEach(it=>drawItem(g,it));
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>{SL.forEach((s,i)=>{const y=19+i*7;txt(g,s.name,6,y+2,{size:5,align:'left'});R(g,34,y,42,5,OL);R(g,35,y+1,Math.round(40*s.wake/100),3,s.awake?'#7fd48a':COPPER);});};
+  return lv;
+}
+
+/* ---------- level 2: Bræk-fælden ---------- */
+function makeL2(){
+  const sofa={x:16,y:140,w:76},arm={x:220,y:138,w:30},shelf={x:228,y:108,w:50};
+  const SOFA_X=55,KITCHEN_X=298,RUG=[108,202];
+  const o=new Owner('Kristian',LOOK.kristian,SOFA_X,sofa.y);o.mode='sit';o.pose='sit';o.hold='phone';o.timer=3.2;
+  const puddles=[];let hair=0,puking=null,cleanP=null,resume='toSofa',chaseT=0;
+  const lv={plats:[sofa,arm,shelf],owners:[o],speakers:[o],spawnX:160,bg:makeBg(bgLiving)};
+  const looking=()=>['toKitchen','toSofa','kitchen','clean','wait'].includes(o.mode)&&!o.carry;
+  const sees=cat=>{if(!looking())return false;const dx=cat.x-o.x;return dx*o.dir>0&&Math.abs(dx)<120;};
+  const standUp=()=>{o.y=FLOOR;o.pose='stand';o.hold=null;};
+  const sitDown=()=>{o.y=sofa.y;o.x=SOFA_X;o.pose='sit';o.hold='phone';o.dir=1;o.mode='sit';o.timer=2.8+Math.random()*1.6;};
+  function stepOn(){
+    for(const p of puddles){
+      if(p.sofa||p.hit)continue;
+      if(Math.abs(o.x-p.x)<3){
+        p.hit=true;cleanP=p;resume=o.mode;o.mode='slip';o.timer=1.4;o.pose='fallen';o.moving=false;
+        addIrr(p.rug?36:24);
+        o.say(p.rug?'PÅ TÆPPET?! Igen?!':pick(['ADR! Hvad er det her?!','Næææh, det er vådt!',`${catName().toUpperCase()}!!`]),2.4);
+        SFX.splat();shake(3);burst(o.x,FLOOR-2,['#c9c46a','#a8a24f'],12,50);return true;
+      }
+    }
+    return false;
+  }
+  lv.update=(dt,cat)=>{
+    hair=Math.max(0,hair-dt);
+    if(puking){
+      puking.t-=dt;
+      if(sees(cat)){
+        puking=null;cat.busy=0;o.say('NEJ! Ikke på gulvet!',2);o.mode='chase';chaseT=0;o.pose='alert';o.timer=.35;
+      }else if(puking.t<=0){
+        const p={x:puking.x,y:puking.y,sofa:puking.sofa,rug:!puking.sofa&&puking.x>RUG[0]&&puking.x<RUG[1]};
+        puddles.push(p);puking=null;SFX.splat();ftext(p.x,p.y-10,p.rug?'blæh (på tæppet)':'blæh','#d8d47c',5);burst(p.x,p.y-1,['#c9c46a','#a8a24f'],6,30);
+      }
+    }
+    if(o.carry)return;
+    switch(o.mode){
+      case 'sit':o.timer-=dt;if(o.timer<=0){standUp();o.mode='toKitchen';if(Math.random()<.6)o.say(pick(['Tid til en snack.','Hvor er chipsene…','Kaffe. Nu.']),1.8);}break;
+      case 'toKitchen':if(stepOn())break;if(o.walkTo(KITCHEN_X,40,dt)){o.mode='kitchen';o.timer=1.8+Math.random();o.dir=1;o.pose='stand';}break;
+      case 'kitchen':o.timer-=dt;o.pose='stand';o.dir=1;if(o.timer<=0)o.mode='toSofa';break;
+      case 'toSofa':
+        if(stepOn())break;
+        if(o.walkTo(SOFA_X,40,dt)){
+          const sp=puddles.find(p=>p.sofa);
+          if(sp){cleanP=sp;resume='sit';o.mode='slipSofa';o.timer=1.3;o.y=sofa.y;o.pose='sit';o.hold=null;o.dir=1;addIrr(35);
+            o.say('Hvorfor er sofaen VÅD?!',2.4);SFX.splat();shake(3);burst(o.x,sofa.y,['#c9c46a','#a8a24f'],10,40);}
+          else sitDown();
+        }
+        break;
+      case 'slipSofa':o.timer-=dt;if(o.timer<=0){standUp();o.mode='clean';o.timer=2.2;}break;
+      case 'slip':o.timer-=dt;o.pose='fallen';if(o.timer<=0){o.mode='clean';o.timer=2.2;}break;
+      case 'clean':
+        o.pose='clean';o.timer-=dt;
+        if(o.timer<=0){const i=puddles.indexOf(cleanP);if(i>=0)puddles.splice(i,1);cleanP=null;o.pose='stand';if(resume==='sit')sitDown();else o.mode=resume;}
+        break;
+      case 'chase':{
+        if(o.timer>0){o.timer-=dt;o.pose='alert';break;}
+        chaseT+=dt;const high=cat.y<FLOOR-44,tx=Math.max(20,Math.min(300,cat.x));
+        if(high){if(o.walkTo(tx,72,dt)||Math.abs(cat.x-o.x)<14){o.mode='wait';o.timer=2;o.pose='stand';o.moving=false;o.dir=cat.x>=o.x?1:-1;o.say(`${catName()}! Kom ned derfra!`,2);}}
+        else{o.walkTo(tx,72,dt);if(Math.abs(cat.x-o.x)<8&&!cat.carried){grab(o,cat,10,pick(['Ud med dig!','Ikke på MIT gulv!','Badeværelset. Nu.']),()=>{o.mode='toSofa';});break;}}
+        if(chaseT>5&&o.mode==='chase'){o.say('Pff…',1.4);o.mode='toSofa';}
+        break;}
+      case 'wait':o.timer-=dt;o.pose='stand';if(o.timer<=0)o.mode='toSofa';break;
+    }
+  };
+  lv.action=cat=>{
+    if(!cat.onGround)return false;
+    if(cat.cool>0)return true;
+    const onSofa=cat.ground===sofa,onFloor=!cat.ground;
+    if(!onSofa&&!onFloor){ftext(cat.x,cat.y-18,'Gulvet er bedre…','#e9d9b8',5);cat.cool=.5;return true;}
+    if(hair>0){ftext(cat.x,cat.y-18,'Ingen hårbold endnu','#e9d9b8',5);cat.cool=.5;return true;}
+    if(puddles.length>=4){ftext(cat.x,cat.y-18,'Maven er tom','#e9d9b8',5);cat.cool=.5;return true;}
+    let px=cat.x+cat.dir*7;if(onSofa)px=Math.max(sofa.x+4,Math.min(sofa.x+sofa.w-4,px));
+    if(onSofa&&o.mode==='sit'&&Math.abs(px-o.x)<12){ftext(cat.x,cat.y-18,'Han sidder der jo','#e9d9b8',5);cat.cool=.5;return true;}
+    puking={t:1.1,x:px,y:cat.y,sofa:onSofa};hair=3;cat.busy=1.1;cat.busyPose='puke';SFX.puke();ftext(cat.x,cat.y-20,'hak… hak…','#e9d9b8',5);return true;
+  };
+  lv.onWin=()=>{o.say('Fint! Du får mad!',2.5);};
+  lv.drawBack=g=>{
+    if(looking()&&o.mode!=='clean'){
+      g.save();g.globalAlpha=.13;g.fillStyle='#fff2b0';g.beginPath();g.moveTo(o.x+o.dir*4,o.y-33);g.lineTo(o.x+o.dir*120,o.y-66);g.lineTo(o.x+o.dir*120,o.y);g.lineTo(o.x+o.dir*4,o.y-20);g.closePath();g.fill();g.restore();
+    }
+    for(const p of puddles){const x=Math.round(p.x),y=Math.round(p.y);R(g,x-7,y-2,14,2,'#8f8a3a');R(g,x-6,y-2,12,1,'#c9c46a');R(g,x-4,y-3,8,1,'#d8d47c');R(g,x-2,y-2,1,1,'#7a7530');R(g,x+3,y-2,1,1,'#7a7530');}
+    drawHuman(g,o);
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>{
+    txt(g,'HÅRBOLD',6,172,{size:5,align:'left'});R(g,36,170,42,5,OL);
+    const r=1-hair/3;R(g,37,171,Math.round(40*r),3,r>=1?'#c9c46a':'#6d6a3c');if(r>=1)txt(g,'klar',82,172,{size:5,align:'left',col:'#d8d47c'});
+  };
+  return lv;
+}
+
+/* ---------- level 3: Tyngdekraft-test ---------- */
+function makeL3(){
+  const chair={x:100,y:144,w:22},table={x:127,y:132,w:106},shelf={x:220,y:96,w:56},counter={x:288,y:129,w:30};
+  const sf=p=>({x0:p.x,x1:p.x+p.w,y:p.y});
+  const tS=sf(table),sS=sf(shelf),cS=sf(counter),chS=sf(chair);
+  const items=[
+    mkItem('kop',140,tS,16,{line:'Min kaffe!'}),
+    mkItem('telefon',161,tS,22,{line:'MIN TELEFON!!'}),
+    mkItem('fjern',184,tS,12,{line:'Fjernbetjeningen. Igen.'}),
+    mkItem('plante',205,tS,22,{heavy:true,line:'Min plante! Der er jord overalt!'}),
+    mkItem('glas',224,tS,16,{line:'Glasset… seriøst?'}),
+    mkItem('vase',262,sS,30,{heavy:true,line:'Ikke vasen fra mormor!!'}),
+    mkItem('kaffe',304,cS,15,{line:'Det var en ny kop!'})
+  ];
+  const CHAIR_X=40;
+  const o=new Owner('Jakob',LOOK.jakob,CHAIR_X,140);o.mode='sit';o.pose='sit';o.hold='paper';
+  let target=null,chaseT=0;
+  const lv={plats:[chair,table,shelf,counter],owners:[o],speakers:[o],spawnX:84,bg:makeBg(bgKitchen)};
+  const reach=cat=>cat.y>=110&&cat.onGround&&!!cat.ground;
+  function react(it){
+    o.say(it.line,2.2);target=it;
+    if(o.mode==='sit'){o.mode='alert';o.timer=.45;o.y=FLOOR;o.x=CHAIR_X+12;o.hold=null;o.pose='alert';o.dir=1;}
+    else if(['back','wait','sweep'].includes(o.mode)){o.mode='come';chaseT=0;}
+  }
+  function tryGrab(cat){
+    if(reach(cat)&&!cat.carried&&Math.abs(cat.x-o.x)<9){
+      grab(o,cat,8,pick([`Ned fra bordet, ${catName()}!`,'Katte hører ikke til på bordet!','Nej nej nej. Ud.']),()=>{o.mode='back';});return true;}
+    return false;
+  }
+  lv.update=(dt,cat)=>{
+    updateItems(items,[tS,sS,cS,chS],dt,(it,s)=>{
+      if(s){it.state='rest';it.surf=s;ftext(it.x,it.y-10,'bonk','#e9d9b8',5);SFX.land();return;}
+      it.state='broken';addIrr(it.val);ftext(it.x,FLOOR-16,it.kind==='plante'?'BUMS!':'KLIRR!',CREAM,7);
+      const cols={kop:['#f1ece2','#6b4226'],kaffe:['#3f7fb5','#6b4226'],glas:['#cfeaf4','#6fb3d6'],telefon:['#222','#6fb3d6'],fjern:['#3a3a44','#e44'],plante:['#5a3a22','#b5603a','#4f9a4a'],vase:['#3f7fb5','#e85d7a','#ffd34a']}[it.kind];
+      burst(it.x,FLOOR-2,cols,14,70);SFX.crash();shake(3);react(it);
+    });
+    if(o.carry)return;
+    switch(o.mode){
+      case 'sit':break;
+      case 'alert':o.timer-=dt;o.pose='alert';if(o.timer<=0){o.mode='come';chaseT=0;}break;
+      case 'come':{
+        chaseT+=dt;if(tryGrab(cat))break;
+        let tx=reach(cat)?cat.x:(target?target.x:180);tx=Math.max(64,Math.min(300,tx));
+        const arrived=o.walkTo(tx,54,dt);
+        if(cat.y<110&&Math.abs(cat.x-o.x)<22){o.mode='wait';o.timer=2.2;o.pose='stand';o.moving=false;o.dir=cat.x>=o.x?1:-1;o.say(`${catName()}! Ned fra hylden!`,2);break;}
+        if(arrived&&!reach(cat)){o.mode='sweep';o.timer=1.6;o.say(pick(['Hmpf.','Jeg ved godt, det var dig.','Hvorfor?!']),1.6);}
+        if(chaseT>6)o.mode='back';
+        break;}
+      case 'sweep':o.pose='clean';o.timer-=dt;if(o.timer<=0){if(target&&target.state==='broken')target.state='swept';target=null;o.mode='back';o.pose='stand';}break;
+      case 'wait':o.timer-=dt;o.pose='stand';if(tryGrab(cat))break;if(o.timer<=0)o.mode='back';break;
+      case 'back':if(tryGrab(cat))break;if(o.walkTo(CHAIR_X,48,dt)){o.mode='sit';o.y=140;o.pose='sit';o.hold='paper';o.dir=1;}break;
+    }
+  };
+  lv.action=cat=>!!pushNearest(cat,items);
+  lv.onWin=()=>{o.say('Okay, jeg giver op. Her er snacks.',2.6);};
+  lv.drawBack=g=>{items.forEach(it=>drawItem(g,it));drawHuman(g,o);};
+  lv.drawFront=()=>{};
+  lv.hud=g=>{const left=items.filter(i=>i.state==='rest'||i.state==='fall'||i.slide>0).length;txt(g,`Ting tilbage: ${left}`,6,172,{size:5,align:'left'});};
+  return lv;
+}
+
+/* ---------- level 4: Mjav ved madskålen ---------- */
+function makeL4(){
+  const chair={x:100,y:144,w:22},table={x:127,y:132,w:106},shelf={x:220,y:96,w:56},counter={x:288,y:129,w:30};
+  const BOWL=258,COUNTER_X=296,CHAIR_X=111,WINDOW_X=84;
+  const o=new Owner('Kristian',LOOK.kristian,COUNTER_X);o.mode='stay';o.timer=2.2;o.dir=1;
+  const route=[{x:CHAIR_X,sit:true,t:4,line:'Lige en kop kaffe i fred…'},{x:WINDOW_X,dir:-1,t:2.2,line:'Hm. Det bliver regn.'},{x:COUNTER_X,dir:1,t:3,line:'Mere kaffe.'}];
+  let ri=-1,annoyed=0,annoyT=0,tripCool=0,full=false;
+  const lv={plats:[chair,table,shelf,counter],owners:[o],speakers:[o],spawnX:200,bg:makeBg(bgKitchen)};
+  function standUp(){if(o.pose==='sit'){o.y=FLOOR;o.hold=null;o.pose='stand';}}
+  function next(){ri=(ri+1)%route.length;o.mode='walk';standUp();}
+  const near=cat=>Math.abs(cat.x-o.x)<28&&cat.y>=126;
+  const sees=x=>o.pose==='sit'?x>o.x:(x-o.x)*o.dir>0&&Math.abs(x-o.x)<150;
+  function check(){
+    if(annoyed>=6&&o.mode!=='chase'&&!o.carry){annoyed=0;o.mode='chase';o.timer=5;standUp();o.pose='alert';o.say('NU er det nok!',1.6);}
+  }
+  lv.update=(dt,cat)=>{
+    tripCool=Math.max(0,tripCool-dt);annoyT+=dt;if(annoyT>3){annoyT=0;annoyed=Math.max(0,annoyed-1);}
+    if(o.carry)return;
+    switch(o.mode){
+      case 'stay':o.timer-=dt;if(o.timer<=0)next();break;
+      case 'walk':{
+        const r=route[ri];
+        if(tripCool<=0&&!cat.carried&&cat.onGround&&!cat.ground&&Math.abs(cat.x-o.x)<7&&(cat.x-o.x)*o.dir>=-1){
+          tripCool=2.2;addIrr(14);o.mode='trip';o.timer=.9;o.pose='alert';o.moving=false;
+          o.say(pick(['Pas nu på, mis!','HOV! Du er i vejen!',`${catName()}, flyt dig!`]),1.8);SFX.grab();shake(2);cat.knock(o.dir*90,-90,.3);break;
+        }
+        if(o.walkTo(r.x,42,dt)){
+          o.mode='stay';o.timer=r.t*(.8+Math.random()*.4);
+          if(r.sit){o.y=chair.y;o.pose='sit';o.hold='phone';o.dir=1;}else{o.dir=r.dir;o.pose='stand';}
+          if(Math.random()<.5)o.say(r.line,1.8);
+        }
+        break;}
+      case 'trip':o.timer-=dt;o.pose='alert';if(o.timer<=0){o.mode='walk';o.pose='stand';}break;
+      case 'chase':{
+        o.timer-=dt;if(o.timer>4.6)break;
+        o.walkTo(Math.max(20,Math.min(300,cat.x)),72,dt);
+        if(Math.abs(cat.x-o.x)<8&&cat.y>=110&&!cat.carried){grab(o,cat,8,pick(['Ud! Der er ikke mad før klokken fem!','Gå ud og leg!','Nej. Ingen mad. Ud.']),()=>next());break;}
+        if(o.timer<=0){o.say('Pff.',1.2);next();}
+        break;}
+    }
+  };
+  lv.action=cat=>{
+    if(cat.cool>0)return true;
+    if(Math.abs(cat.x-BOWL)<12&&cat.onGround&&!cat.ground){
+      cat.cool=1.2;cat.busy=.4;cat.busyPose='meow';SFX.meow(cat.kind==='nova'?.8:1.05);
+      if(!o.carry&&o.mode!=='chase'&&sees(BOWL)){addIrr(9);annoyed++;ftext(cat.x,cat.y-22,'SE! Den er HALVTOM!');}
+      else ftext(cat.x,cat.y-22,'(han kigger ikke)','#e9d9b8',5);
+      check();return true;
+    }
+    if(near(cat)&&!o.carry&&o.mode!=='chase'){
+      cat.cool=.45;cat.busy=.25;cat.busyPose='meow';SFX.meow(cat.kind==='nova'?.85:1.2);addIrr(5);annoyed++;
+      ftext(cat.x+cat.dir*6,cat.y-20,pick(['MJAAAV!','MAD!','MJAV MJAV!']));check();return true;
+    }
+    return false;
+  };
+  lv.onMeow=()=>addIrr(.5);
+  lv.onWin=()=>{full=true;o.say('FINT! Her er mad!',2.6);};
+  lv.drawBack=g=>{
+    R(g,BOWL-8,153,16,7,OL);R(g,BOWL-7,154,14,6,'#c8423a');R(g,BOWL-7,154,14,1,'#e0695e');
+    if(full){R(g,BOWL-6,150,12,4,'#8a5a3a');R(g,BOWL-4,148,8,2,'#a06c48');}else R(g,BOWL-6,153,5,1,'#8a5a3a');
+    drawHuman(g,o);
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>{txt(g,'TÅLMODIGHED',6,172,{size:5,align:'left'});R(g,50,170,42,5,OL);R(g,51,171,Math.round(40*(1-annoyed/6)),3,annoyed>=4?'#ff6a55':'#7fd48a');};
+  return lv;
+}
+
+/* ---------- level 5: Kradse i sofaen ---------- */
+function makeL5(){
+  const sofa={x:16,y:140,w:76},arm={x:220,y:138,w:30},shelf={x:228,y:108,w:50};
+  const SEAT_X=236;
+  const o=new Owner('Jakob',LOOK.jakob,SEAT_X,138);
+  let lastScratch=-9,strict=0,chaseT=0,t=0;const marks=[];
+  const lv={plats:[sofa,arm,shelf],owners:[o],speakers:[o],spawnX:120,bg:makeBg(bgLiving)};
+  const atSofa=cat=>cat.onGround&&cat.x>=14&&cat.x<=96&&(!cat.ground||cat.ground===sofa);
+  function sit(){o.mode='read';o.x=SEAT_X;o.y=138;o.pose='sit';o.hold='paper';o.dir=-1;o.timer=Math.max(1.2,3.2-strict*.25)+Math.random()*1.5;}
+  sit();o.timer=3;
+  function caught(){o.y=FLOOR;o.hold=null;o.pose='alert';o.mode='chase';o.timer=.35;chaseT=0;o.say(pick(['HOV! Ikke sofaen!','Den sofa var DYR!',`${catName()}! NEJ!`]),1.8);SFX.grab();}
+  lv.update=(dt,cat)=>{
+    t+=dt;if(o.carry)return;
+    switch(o.mode){
+      case 'read':o.timer-=dt;if(o.timer<=0){o.mode='glance';o.timer=.6;o.hold=null;}break;
+      case 'glance':o.timer-=dt;if(o.timer<=0){o.mode='look';o.timer=1.2+Math.random()*1.2;}break;
+      case 'look':o.timer-=dt;if(t-lastScratch<.35&&atSofa(cat)){caught();break;}if(o.timer<=0){strict++;sit();}break;
+      case 'chase':{
+        if(o.timer>0){o.timer-=dt;o.pose='alert';break;}
+        chaseT+=dt;const tx=Math.max(20,Math.min(300,cat.x));
+        if(cat.y<FLOOR-44){if(o.walkTo(tx,64,dt)||Math.abs(cat.x-o.x)<14){o.mode='wait';o.timer=2;o.pose='stand';o.moving=false;o.say('Kom ned derfra!',1.8);}}
+        else{o.walkTo(tx,64,dt);if(Math.abs(cat.x-o.x)<8&&!cat.carried){grab(o,cat,306,'Ud i køkkenet med dig!',()=>{o.mode='back';});break;}}
+        if(chaseT>5)o.mode='back';
+        break;}
+      case 'wait':o.timer-=dt;o.pose='stand';if(o.timer<=0)o.mode='back';break;
+      case 'back':if(o.walkTo(SEAT_X,44,dt))sit();break;
+    }
+  };
+  lv.action=cat=>{
+    if(!atSofa(cat))return false;
+    if(cat.cool>0)return true;
+    cat.cool=.22;cat.busy=.2;cat.busyPose='paw';lastScratch=t;addIrr(3.2);
+    if(marks.length<60)marks.push(Math.round(cat.x+cat.dir*8+(Math.random()*4-2)));
+    noise({dur:.08,vol:.06,lp:2500});ftext(cat.x+cat.dir*8,cat.y-14,'krads','#e9d9b8',5);burst(cat.x+cat.dir*8,cat.y-6,['#3d8693','#e0b062'],3,30);
+    if(o.mode==='look')caught();
+    return true;
+  };
+  lv.onWin=()=>{o.say('Okay. Sofaen er død. Du får mad.',2.6);};
+  lv.drawBack=g=>{
+    for(const x of marks){if(x<14||x>96)continue;R(g,x,147,1,8,'#8fc4cc');R(g,x+1,149,1,5,'#e0b062');}
+    if(o.mode==='glance')txt(g,'?',o.x-4,o.y-36-(o.look.tall||0),{size:9,col:'#ffd34a'});
+    if(o.mode==='look'){g.save();g.globalAlpha=.14;g.fillStyle='#fff2b0';g.beginPath();g.moveTo(o.x-6,o.y-24);g.lineTo(o.x-230,o.y-60);g.lineTo(o.x-230,FLOOR);g.lineTo(o.x-6,o.y-14);g.closePath();g.fill();g.restore();}
+    drawHuman(g,o);
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>{const m=o.mode;txt(g,m==='look'?'HAN KIGGER!':m==='glance'?'Pas på…':m==='read'?'Han læser':'',6,172,{size:6,align:'left',col:m==='look'?'#ff6a55':m==='glance'?'#ffd34a':'#7fd48a'});};
+  return lv;
+}
+
+/* ---------- levels 6 + 7: the desk ---------- */
+function deskScene(eve){
+  const desk={x:148,y:125,w:116},box={x:268,y:142,w:24};
+  const dS={x0:148,x1:264,y:125};
+  const onDesk=cat=>cat.onGround&&cat.ground===desk;
+  return{desk,box,dS,CH:152,onDesk,inKB:cat=>onDesk(cat)&&cat.x>=160&&cat.x<=192,inMon:cat=>onDesk(cat)&&cat.x>192&&cat.x<=238,bg:makeBg(g=>bgOffice(g,eve))};
+}
+function drawKeyboard(g,rgb,t){
+  R(g,161,121,32,4,OL);R(g,162,122,30,2,rgb?'#2a2a30':'#d9d9de');
+  for(let i=0;i<14;i++)R(g,163+i*2,122,1,1,rgb?['#e8932c','#7a4fd0','#4fb3a0','#e85d7a'][(i+Math.floor(t*6))%4]:'#9aa3a8');
+}
+function makeL6(){
+  const D=deskScene(false);
+  const o=new Owner('Kristian',LOOK.kristian,D.CH,140);o.mode='work';o.pose='sit';o.hold='keys';
+  const items=[mkItem('telefon',247,D.dS,18,{line:'Min telefon!'}),mkItem('kop',258,D.dS,15,{line:'Min kaffe…'})];
+  let lieT=0,monT=0,lifts=0,jj=0,t=0;
+  const lv={plats:[D.desk,D.box],owners:[o],speakers:[o],spawnX:60,bg:D.bg};
+  function lift(cat,line){o.y=FLOOR;o.pose='stand';o.hold=null;lifts++;lieT=0;monT=0;o.mode='carry';grab(o,cat,40,line,()=>{o.mode='back';});}
+  lv.update=(dt,cat)=>{
+    t+=dt;
+    updateItems(items,[D.dS],dt,(it)=>{it.state='broken';addIrr(it.val);ftext(it.x,FLOOR-16,'KLIRR!',CREAM,7);burst(it.x,FLOOR-2,['#f1ece2','#6fb3d6','#222'],12,60);SFX.crash();shake(2);if(!o.carry)o.say(it.line,1.8);});
+    if(o.carry)return;
+    if(o.mode==='back'){if(o.walkTo(D.CH,46,dt)){o.mode='work';o.y=140;o.pose='sit';o.hold='keys';o.dir=1;}return;}
+    if(o.mode!=='work')return;
+    const delay=Math.max(1.1,2.6-lifts*.3);
+    if(cat.lie&&D.inKB(cat)){
+      lieT+=dt;addIrr(9*dt);jj=Math.min(90,jj+dt*25);if(Math.random()<dt*5){ftext(200+Math.random()*30,104,'j','#3a3a44',4);SFX.type();}
+      if(lieT>delay)lift(cat,pick(['Jeg ARBEJDER!','Det er ikke en seng!','Mødet er om to minutter!']));
+    }else lieT=Math.max(0,lieT-dt);
+    if(D.inMon(cat)){monT+=dt;addIrr(4*dt);if(monT>delay+.8)lift(cat,'Jeg kan ikke se skærmen!');}else monT=Math.max(0,monT-dt);
+  };
+  lv.action=cat=>{
+    if(pushNearest(cat,items))return true;
+    if(D.inKB(cat)){cat.lie=true;ftext(cat.x,cat.y-16,'*lægger sig*','#e9d9b8',5);SFX.knead();return true;}
+    if(Math.abs(cat.x-o.x)<26&&o.mode==='work'){if(cat.cool>0)return true;cat.cool=.5;cat.busy=.2;cat.busyPose='meow';addIrr(2.5);SFX.meow(cat.kind==='nova'?.85:1.2);ftext(cat.x+cat.dir*6,cat.y-20,'MJAV!');return true;}
+    return false;
+  };
+  lv.onWin=()=>{o.say('Okay! Pause. Jeg henter snacks.',2.6);};
+  lv.drawBack=g=>{
+    R(g,196,88,40,27,'#f4f1ea');R(g,196,88,40,3,'#3f7fb5');
+    for(let i=0;i<5;i++)R(g,199,94+i*4,30-((i*7)%11),1,'#9aa3a8');
+    for(let k=0;k<Math.floor(jj);k++)R(g,199+(k%17)*2,113-Math.floor(k/17)*2,1,1,'#222');
+    drawKeyboard(g,false,t);items.forEach(it=>drawItem(g,it));drawHuman(g,o);
+  };
+  lv.drawFront=()=>{};
+  return lv;
+}
+function makeL7(){
+  const D=deskScene(true);
+  const o=new Owner('Jakob',LOOK.jakob,D.CH,140);o.mode='game';o.pose='sit';o.hold='keys';o.headset=true;
+  const items=[mkItem('chips',249,D.dS,18,{line:'MINE CHIPS!'}),mkItem('kaffe',259,D.dS,14,{line:'Min energidrik!'})];
+  let deskT=0,t=0,talk=3,wipe=false,monSaid=false,heat=0;
+  const lv={plats:[D.desk,D.box],owners:[o],speakers:[o],spawnX:60,bg:D.bg,tint:'rgba(20,10,50,.12)'};
+  const raid=['Heal mig!','Tank, pas på!','Tre procent tilbage!','Ingen AFK nu!','Spred jer!'];
+  lv.update=(dt,cat)=>{
+    t+=dt;heat=Math.max(0,heat-dt*.8);talk-=dt;if(talk<=0&&!o.bubble){o.say(pick(raid),1.6);talk=5+Math.random()*3;}
+    updateItems(items,[D.dS],dt,(it)=>{it.state='broken';addIrr(it.val);ftext(it.x,FLOOR-16,it.kind==='chips'?'KNAS!':'KLIRR!',CREAM,7);burst(it.x,FLOOR-2,it.kind==='chips'?['#f2cf6a','#e8b84a','#c8423a']:['#3f7fb5','#6b4226'],14,60);SFX.crash();shake(2);o.say(it.line,1.8);});
+    if(D.onDesk(cat))deskT+=dt;else deskT=Math.max(0,deskT-dt*2);
+    if(cat.lie&&D.inKB(cat)){addIrr(10*dt);if(Math.random()<dt*5){ftext(200+Math.random()*30,104,'j','#f3ead8',4);SFX.type();}}
+    if(D.inMon(cat)){addIrr(5*dt);if(!monSaid){monSaid=true;o.say('Jeg kan ikke se bossen!',1.6);}}else monSaid=false;
+    if(deskT>2.4&&D.onDesk(cat)&&!game.ending){
+      deskT=0;cat.lie=false;cat.knock(150,-130,.6);
+      o.say(pick(['Ikke nu! Vi er midt i bossen!','Mis, jeg TANKER!','To minutter mere!']),1.8);SFX.grab();
+    }
+  };
+  lv.action=cat=>{
+    if(pushNearest(cat,items))return true;
+    if(D.inKB(cat)){cat.lie=true;ftext(cat.x,cat.y-16,'*lægger sig*','#e9d9b8',5);SFX.knead();return true;}
+    if(Math.abs(cat.x-(o.x+6))<14){
+      if(cat.cool>0)return true;cat.cool=.5;cat.busy=.22;cat.busyPose='paw';addIrr(3.5);SFX.paw();heat++;
+      if(heat>=5){heat=0;cat.knock(-140,-120,.8);o.say('NEJ! Væk med poten!',1.6);SFX.grab();return true;}
+      ftext(cat.x+cat.dir*6,cat.y-16,'prik','#e9d9b8',5);if(Math.random()<.35)o.say(pick(['Av! Mis!','Ikke armen!','Jeg misser mine knapper!']),1.4);return true;
+    }
+    return false;
+  };
+  lv.onMeow=()=>addIrr(1);
+  lv.onWin=()=>{wipe=true;o.say('Vi wipede… Okay. Du får snacks.',2.8);};
+  lv.drawBack=g=>{
+    if(wipe){R(g,196,88,40,27,'#3a0d10');txt(g,'WIPE',216,101,{size:9,col:'#ff6a55',outline:null});}
+    else{
+      const hp=Math.max(0,game.time/LEVELS[game.li].time),fl=Math.floor(t*4)%2;
+      R(g,196,88,40,27,'#2a1840');R(g,196,107,40,8,'#3b2a55');
+      R(g,213,95+fl,15,9,'#c8423a');R(g,226,93+fl,7,5,'#c8423a');R(g,211,92+fl,7,4,'#8f2c2a');R(g,230,94+fl,1,1,'#ffd34a');
+      ['#4fb3a0','#e8932c','#e9e4da','#7a4fd0','#e85d7a'].forEach((c,i)=>R(g,199+i*3,109-(Math.floor(t*5+i)%2),2,3,c));
+      if(fl)R(g,208,100,2,1,'#ffd34a');
+      R(g,198,89,36,2,'#3a0d0d');R(g,198,89,Math.round(36*hp),2,'#e0473a');
+    }
+    drawKeyboard(g,true,t);items.forEach(it=>drawItem(g,it));drawHuman(g,o);
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>{txt(g,'Bossens liv = tiden. Få raidet til at tabe først!',6,172,{size:5,align:'left'});};
+  return lv;
+}
+
+/* ---------- chapter 2: Madslavernes tur ---------- */
+const OWNERS={
+  kristian:{name:'Kristian',look:LOOK.kristian,speed:46,reach:10,calm:1.35,blurb:'Rolig og bamset. Kattene stoler på ham, og hans søde snak virker bedst.',stats:{Rækkevidde:3,Fart:3,Ro:5}},
+  jakob:{name:'Jakob',look:LOOK.jakob,speed:56,reach:17,calm:1,blurb:'Høj og hurtig. Rækker langt og når helt op på hylderne.',stats:{Rækkevidde:5,Fart:4,Ro:2}}
+};
+const ownerK=()=>OWNERS[game.ownerKind]||OWNERS.jakob;
+function addProg(v){game.irr=Math.max(0,Math.min(100,game.irr+v));}
+function mkPlayer(x){const k=ownerK(),p=new Owner(k.name,k.look,x);Object.assign(p,{speed:k.speed,reach:k.reach,calm:k.calm,busy:0,jy:0,jv:0});return p;}
+function steer(p,dt,inp,min=12,max=308,mul=1){
+  p.busy=Math.max(0,p.busy-dt);
+  if(p.busy>0){p.moving=false;return 0;}
+  const ax=(inp.left?-1:0)+(inp.right?1:0);
+  if(ax){p.dir=ax;p.x=Math.max(min,Math.min(max,p.x+ax*p.speed*mul*dt));p.moving=true;}else p.moving=false;
+  return ax;
+}
+function poseFor(p,carry){if(p.busy>0)return;p.pose=carry?'carry':p.moving?'walk':'stand';}
+function wander(c,dt,plats,o={}){
+  const a=c.ai||(c.ai={t:0,l:false,r:false,j:false});const inp={};
+  if(o.flee!=null){if(c.x<o.flee)inp.left=true;else inp.right=true;if(Math.random()<dt*(o.fleeJump||1))inp.jump=true;}
+  else if(o.target!=null){if(Math.abs(o.target-c.x)>3){inp.left=o.target<c.x;inp.right=o.target>c.x;}}
+  else{a.t-=dt;if(a.t<=0){const r=Math.random();a.l=r<.3;a.r=r>.7;a.t=.5+Math.random()*1.5;a.j=Math.random()<(o.jumpy||0);}inp.left=a.l;inp.right=a.r;inp.jump=a.j;a.j=false;}
+  const mn=o.minX??14,mx=o.maxX??306;
+  if(c.x<=mn)inp.left=false;if(c.x>=mx)inp.right=false;
+  c.speedMul=o.speed||1;c.update(dt,plats,inp);c.x=Math.max(mn,Math.min(mx,c.x));
+}
+const dc=(g,c)=>drawCat(g,c.kind,c.x,c.y,c.dir,c.pose,c.t);
+function bar(g,label,x,y,v,col){txt(g,label,x,y+2,{size:5,align:'left'});R(g,x+44,y,42,5,OL);R(g,x+45,y+1,Math.round(40*Math.max(0,Math.min(1,v))),3,col);}
+const hint=(p,s)=>ftext(p.x,p.y-50-(p.look.tall||0),s,'#e9d9b8',5);
+function drawTub(g,front){
+  if(!front){R(g,15,123,98,38,OL);R(g,16,124,96,36,'#f4f6f8');R(g,18,126,92,6,'#bfe0ea');}
+  R(g,15,131,98,30,OL);R(g,16,132,96,28,'#f4f6f8');R(g,16,132,96,2,'#dfe5e8');R(g,20,158,6,2,'#c9a15a');R(g,102,158,6,2,'#c9a15a');
+}
+function bgBath(g){
+  R(g,0,0,W,FLOOR,'#cfe3e8');for(let x=0;x<W;x+=12)R(g,x,40,1,FLOOR-40,'#b9d2d8');for(let y=52;y<FLOOR;y+=12)R(g,0,y,W,1,'#b9d2d8');
+  R(g,0,0,W,40,'#8fb7c2');R(g,0,40,W,2,'#7aa3ae');
+  R(g,130,12,40,28,'#2b2f3a');R(g,132,14,36,24,'#a8d0e6');R(g,149,14,2,24,'#2b2f3a');
+  R(g,214,58,36,30,OL);R(g,215,59,34,28,'#d8eef5');R(g,218,62,8,3,'#f4fbfd');
+  R(g,212,106,40,6,OL);R(g,213,107,38,4,'#f4f6f8');R(g,228,112,8,48,'#dfe5e8');R(g,230,104,3,3,'#8a8a92');
+  R(g,268,116,12,22,OL);R(g,269,117,10,20,'#f4f6f8');R(g,262,134,28,9,OL);R(g,263,135,26,7,'#f4f6f8');R(g,268,143,16,17,'#e9eef0');
+  for(let x=0;x<W;x+=10)for(let y=FLOOR;y<H;y+=10)R(g,x,y,10,10,((x+y)/10)%2?'#e9eef0':'#d3dade');
+  R(g,0,FLOOR-3,W,3,'#9fbfc8');
+  R(g,120,88,30,2,'#8a8a92');R(g,124,90,10,24,COPPER);R(g,136,90,8,18,'#4fb3a0');
+  drawTub(g,false);
+}
+function drawBedPlain(g){
+  R(g,253,103,9,57,OL);R(g,254,104,7,56,'#5a3c28');R(g,113,121,7,39,OL);R(g,114,122,5,38,'#5a3c28');
+  R(g,118,138,136,10,'#6b4a33');R(g,120,148,4,12,'#5a3c28');R(g,248,148,4,12,'#5a3c28');
+  R(g,118,131,136,8,'#e9e4da');R(g,117,129,137,2,OL);R(g,118,130,136,6,'#d39b4a');R(g,222,124,30,6,OL);R(g,223,125,28,4,'#f4f1ea');
+}
+
+/* 9: Kattebakken */
+function makeO1(){
+  const BOX=165,need=6,p=mkPlayer(262),cats=[new Cat('fluffy',50),new Cat('nova',300)];
+  const lumps=[];for(let i=0;i<4;i++)lumps.push({x:BOX-15+i*10,n:0});
+  let air=100,stink=0,gag=0,visitT=7,visitor=null,holding=false;
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(bgBath),meterLabel:'RENT'};
+  function gasp(){gag=1.4;stink=35;air=Math.max(air,50);p.busy=1.4;p.pose='alert';p.say(pick(['BVADR!','Åh nej, lugten!','Jeg kan SMAGE det!']),1.4);shake(2);SFX.splat();burst(p.x,p.y-38,['#9fbf5a','#7a9a3a'],10,40);}
+  lv.update=(dt,inp)=>{
+    gag=Math.max(0,gag-dt);holding=!!inp.up&&gag<=0;
+    steer(p,dt,inp);poseFor(p,false);
+    const d=Math.abs(p.x-BOX),zone=Math.max(0,1-d/70);
+    if(holding){air-=26*dt;if(air<=0){air=0;gasp();}}
+    else{air=Math.min(100,air+(zone>.3?8:45)*dt);stink+=zone*50*dt/p.calm;}
+    if(zone<.2)stink-=30*dt;stink=Math.max(0,stink);
+    if(stink>=100&&gag<=0)gasp();
+    if(lumps.length&&Math.random()<dt*2)ftext(BOX+Math.random()*30-15,140,'~','#9fbf5a',6);
+    for(const c of cats){
+      if(c===visitor){
+        const v=c.vis;
+        if(v.stage==='go'){wander(c,dt,[],{target:BOX});if(Math.abs(c.x-BOX)<4){v.stage='sit';v.t=1.8;}}
+        else{c.update(dt,[],{});c.pose='knead';v.t-=dt;
+          if(v.t<=0){lumps.push({x:BOX-15+Math.random()*30,n:0});ftext(BOX,136,'*plop*','#c9a15a',6);stink=Math.min(100,stink+zone*35);
+            p.say(pick(['NEJ! Ikke NU!','Seriøst?!','Jeg er LIGE her!']),1.6);c.vis=null;visitor=null;c.ai=null;}}
+      }else wander(c,dt,[],{});
+    }
+    visitT-=dt;if(visitT<=0&&!visitor&&lumps.length<4){visitor=pick(cats);visitor.vis={stage:'go',t:0};visitT=8+Math.random()*4;}
+  };
+  lv.action=()=>{
+    if(gag>0||p.busy>0)return;
+    if(Math.abs(p.x-BOX)>p.reach+14){hint(p,'Gå hen til bakken');return;}
+    if(visitor&&visitor.vis&&visitor.vis.stage==='sit'){hint(p,'Optaget…');return;}
+    if(!lumps.length){hint(p,'Tomt… for nu');return;}
+    const l=lumps[0];l.n++;p.busy=.28;p.pose='clean';p.dir=BOX>=p.x?1:-1;SFX.paw();burst(l.x,148,['#d9c79a'],3,20);
+    if(!holding)stink=Math.min(100,stink+10/p.calm);
+    if(l.n>=3){lumps.shift();addProg(100/need);ftext(BOX,128,'I posen!',COPPER,6);}
+  };
+  lv.drawBack=g=>{
+    R(g,BOX-23,147,46,13,OL);R(g,BOX-22,148,44,12,'#7f8a9a');R(g,BOX-20,148,40,3,'#d9c79a');R(g,BOX-22,152,44,1,'#6a7484');
+    for(const l of lumps)R(g,l.x-2,147,4,2,'#6b4226');
+    cats.forEach(c=>dc(g,c));drawHuman(g,p);
+    if(holding){const ex=p.look.tall||0;R(g,p.x+p.dir*2-1,p.y-31-ex,3,2,'#e88a8a');txt(g,'(holder vejret)',p.x,p.y-46-ex,{size:4,col:'#1f1d2b',outline:'#f4f6f8'});}
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>{bar(g,'LUFT',6,165,air/100,'#6fb3d6');bar(g,'STANK',6,172,stink/100,'#9fbf5a');};
+  return lv;
+}
+
+/* 10: Fiskestangen */
+function makeO2(){
+  const p=mkPlayer(26),LOW=146,HIGH=p.reach>12?76:84;
+  const cats=[new Cat('fluffy',200),new Cat('nova',290)];cats.forEach((c,i)=>{c.st={mode:'stalk',t:1+i};c.dir=-1;});
+  let bx=150,by=LOW,stuck=0,holder=null,jerk=0;
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(bgLiving),meterLabel:'LEG'};
+  lv.update=(dt,inp)=>{
+    stuck=Math.max(0,stuck-dt);jerk=Math.max(0,jerk-dt);
+    if(stuck<=0){holder=null;if(inp.left)bx-=120*dt;if(inp.right)bx+=120*dt;bx=Math.max(60,Math.min(306,bx));by+=((inp.up?HIGH:LOW)-by)*Math.min(1,dt*10);}
+    else if(holder){bx=holder.x+holder.dir*9;by=holder.y-9;}
+    p.pose='carry';p.dir=1;p.x=26;
+    for(const c of cats){
+      const s=c.st,dx=bx-c.x;
+      if(s.mode==='stalk'){
+        s.t-=dt;const i2={};if(Math.abs(dx)>16){i2.left=dx<0;i2.right=dx>0;}
+        c.speedMul=(c.kind==='nova'?.65:.85)/(p.calm>1?1.1:1);c.update(dt,[],i2);
+        const low=by>LOW-26&&stuck<=0;
+        if(Math.abs(dx)<70&&low)addProg(2.6*dt);
+        if(Math.abs(dx)<34&&s.t<=0&&low){s.mode='wiggle';s.t=(c.kind==='nova'?.9:.6)*p.calm;c.dir=dx>=0?1:-1;ftext(c.x,c.y-20,'*vrik vrik*','#e9d9b8',5);}
+      }else if(s.mode==='wiggle'){
+        s.t-=dt;c.update(dt,[],{});c.pose='knead';
+        if(s.t<=0){s.mode='air';c.vy=-c.k.jump*1.05;c.kvx=Math.max(-150,Math.min(150,dx*4));c.onGround=false;c.ground=null;s.hit=false;}
+      }else{
+        c.update(dt,[],{});
+        if(!s.hit&&stuck<=0&&Math.abs(c.x-bx)<9&&Math.abs(c.y-10-by)<11){s.hit=true;stuck=1.6;holder=c;addProg(-12);ftext(c.x,c.y-22,'FANGET!','#ff6a55',7);p.say(pick(['Slip fuglen!','Hey, den er MIN!','Ej, for hurtig!']),1.4);SFX.grab();}
+        if(c.onGround){s.mode='stalk';s.t=1+Math.random();if(!s.hit){addProg(7);ftext(c.x,c.y-22,'Snydt!',COPPER,6);}}
+      }
+    }
+  };
+  lv.action=()=>{if(stuck>0||jerk>0)return;jerk=1;bx=Math.max(60,Math.min(306,bx+(bx>200?-40:40)));SFX.jump();};
+  lv.drawBack=g=>{
+    drawHuman(g,p);
+    const ex=p.look.tall||0,hx=p.x+10,hy=p.y-24-ex,tx=p.x+46,ty=50;
+    g.save();g.strokeStyle='#5a3c28';g.lineWidth=1.5;g.beginPath();g.moveTo(hx,hy);g.lineTo(tx,ty);g.stroke();
+    g.strokeStyle='rgba(243,234,216,.85)';g.lineWidth=.5;g.beginPath();g.moveTo(tx,ty);g.lineTo(bx,by-3);g.stroke();g.restore();
+    cats.forEach(c=>dc(g,c));
+    const f=Math.floor(game.t*8)%2;R(g,bx-4,by-3,8,5,OL);R(g,bx-3,by-2,6,3,'#e85d7a');R(g,bx-2,by-4-f,4,2,'#ffd34a');R(g,bx+3,by-1,2,1,'#ffd34a');R(g,bx-5,by-1+f,2,2,'#4fb3a0');
+  };
+  lv.drawFront=()=>{};
+  return lv;
+}
+
+/* 11: Kattehår */
+function makeO3(){
+  const plats=[{x:16,y:140,w:76},{x:220,y:138,w:30},{x:228,y:108,w:50}];
+  const need=12,p=mkPlayer(150),cats=[new Cat('fluffy',60),new Cat('nova',250)];
+  const hairs=[],addHair=(x,y)=>{if(hairs.length<16)hairs.push({x:Math.round(x),y});};
+  [[30,139],[55,139],[80,139],[40,160],[110,160],[150,160],[185,160],[232,137],[260,160],[295,160]].forEach(([x,y])=>addHair(x,y));
+  let clothes=0,shooT=0,shed=4;cats.forEach(c=>c.flee=0);
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(bgLiving),meterLabel:'HÅRFRIT'};
+  lv.update=(dt,inp)=>{
+    shooT=Math.max(0,shooT-dt);
+    steer(p,dt,inp);poseFor(p,false);
+    if(inp.jump&&shooT<=0&&p.busy<=0){shooT=2.5;p.say(pick(['Nej, mis! Ikke nu!','Hold afstand!','Shh! Væk!']),1.3);cats.forEach(c=>{if(Math.abs(c.x-p.x)<80)c.flee=p.calm>1?3.2:2;});}
+    for(const c of cats){
+      c.flee=Math.max(0,c.flee-dt);
+      if(c.flee>0)wander(c,dt,plats,{flee:p.x,fleeJump:.5});
+      else if(Math.abs(c.x-p.x)<90&&c.onGround&&!c.ground)wander(c,dt,plats,{target:p.x+(c.kind==='nova'?6:-6),speed:c.kind==='nova'?.8:1});
+      else wander(c,dt,plats,{jumpy:.3});
+      if(Math.abs(c.x-p.x)<9&&!c.ground&&c.onGround&&p.busy<=0){clothes+=(game.ownerKind==='jakob'?26:18)*dt;if(Math.random()<dt*2)ftext(c.x,c.y-18,'*kæl*','#e9d9b8',5);}
+    }
+    shed-=dt;if(shed<=0){shed=4+Math.random()*2;const c=pick(cats);addHair(c.x,c.y);}
+    if(clothes>=100){clothes=0;p.busy=2.2;p.pose='clean';p.say('Nu skal jeg rulle MIG SELV!',2);SFX.grab();}
+  };
+  lv.action=()=>{
+    if(p.busy>0)return;
+    let best=null,bd=1e9;for(const h of hairs){const d=Math.abs(h.x-p.x);if(d<bd){bd=d;best=h;}}
+    if(!best||bd>p.reach+6){hint(p,'Ingen hår her');return;}
+    hairs.splice(hairs.indexOf(best),1);p.busy=.3;p.pose='clean';p.dir=best.x>=p.x?1:-1;addProg(100/need);SFX.paw();burst(best.x,best.y-2,['#9aa2b5','#c2c8d4'],5,25);
+  };
+  lv.drawBack=g=>{
+    for(const h of hairs){R(g,h.x-3,h.y-2,7,2,'#9aa2b5');R(g,h.x-1,h.y-3,3,1,'#c2c8d4');}
+    drawHuman(g,p);
+    if(p.pose!=='clean'){const ex=p.look.tall||0,n=Math.floor(clothes/7);for(let i=0;i<n;i++)R(g,p.x-3+(i*5)%7,p.y-26-ex+(i*7)%12,1,1,'#c2c8d4');}
+    cats.forEach(c=>dc(g,c));
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>bar(g,'HÅR PÅ TØJ',6,170,clothes/100,'#c2c8d4');
+  return lv;
+}
+
+/* 12: Ormekuren */
+function makeO4(){
+  const plats=[{x:100,y:144,w:22},{x:127,y:132,w:106},{x:288,y:129,w:30}];
+  const p=mkPlayer(200),order=['fluffy','nova'];
+  let ci=0,cat=new Cat('fluffy',30),sus=35,pills=4,snacks=14,cd=0,eat=0,pending=null,leave=0;
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(bgKitchen),meterLabel:'ORMEKUR'};
+  const near=()=>cat&&leave<=0&&Math.abs(cat.x-p.x)<p.reach+12&&cat.y>=126;
+  function resolve(){
+    const r=pending;pending=null;if(!r||!cat)return;
+    if(!r.pill){sus=Math.max(0,sus-25);ftext(cat.x,cat.y-20,'nam','#e9d9b8',5);return;}
+    if(r.spit){ftext(cat.x,cat.y-22,'PTUI!','#ff6a55',7);burst(cat.x+cat.dir*8,cat.y-8,['#f4f6f8'],4,60);p.say(pick(['Hvordan OPDAGEDE du den?!','Den var jo gemt!','Argh!']),1.6);}
+    else{addProg(100/order.length);ftext(cat.x,cat.y-22,'*sluk*',COPPER,7);p.say('JA! Ormekur!',1.4);leave=2.5;}
+  }
+  function give(pill){
+    if(cd>0||p.busy>0||eat>0)return;
+    if(!near()){hint(p,'Katten er for langt væk');return;}
+    if(pill&&pills<=0){hint(p,'Ingen piller tilbage');return;}
+    if(!pill&&snacks<=0){hint(p,'Ingen snacks tilbage');return;}
+    if(pill){pills--;const ch=Math.max(.08,Math.min(.92,sus/100+.12));pending={pill:true,spit:Math.random()<ch};sus=Math.min(100,sus+35/p.calm);}
+    else{snacks--;pending={pill:false};}
+    cd=p.reach>12?.45:.7;p.busy=.3;p.pose='clean';p.dir=cat.x>=p.x?1:-1;eat=.8;SFX.paw();
+  }
+  lv.update=(dt,inp)=>{
+    cd=Math.max(0,cd-dt);
+    if(eat>0){eat-=dt;if(eat<=0)resolve();}
+    steer(p,dt,inp);poseFor(p,false);
+    if(leave>0){leave-=dt;wander(cat,dt,[],{target:330,maxX:330});if(leave<=0){ci++;cat=ci<order.length?new Cat(order[ci],16):null;sus=35;}}
+    else if(cat){if(eat>0){cat.update(dt,[],{});cat.pose='knead';}else wander(cat,dt,plats,{jumpy:.15,speed:.8});}
+    if(inp.jump)give(true);
+    if(pills<=0&&!pending&&cat&&leave<=0&&game.time>1&&!game.ending)game.time=1;
+  };
+  lv.action=()=>give(false);
+  lv.drawBack=g=>{drawHuman(g,p);if(cat)dc(g,cat);};
+  lv.drawFront=()=>{};
+  lv.hud=g=>{bar(g,'MISTANKE',6,165,sus/100,'#ff6a55');txt(g,`Piller: ${pills} · Snacks: ${snacks}`,6,174,{size:5,align:'left'});};
+  return lv;
+}
+
+/* 13: Kloklip */
+function makeO5(){
+  const spots=[{x:170,y:130},{x:100,y:146},{x:42,y:117},{x:220,y:130}],per=8;
+  const p=mkPlayer(290),order=['fluffy','nova'];
+  let ci=0,si=0,cat=new Cat('fluffy',170),noise=0,clips=0,cd=0,gone=0,lastClip=-9,t=0;
+  function settle(){const s=spots[si];cat.x=s.x;cat.y=s.y;cat.vy=0;cat.kvx=0;cat.dir=Math.random()<.5?1:-1;cat.pose='sleep';noise=0;}
+  settle();
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(g=>{bgBedroom(g,false);drawBedPlain(g);}),meterLabel:'KLIPPET'};
+  function wakeUp(){ftext(cat.x,cat.y-20,'MRRAU!','#ff6a55',7);SFX.meow(.7);p.say(pick(['Nej nej, sov igen…','Det var kun mig!','Ups.']),1.4);cat.knock(200,-120,0);gone=3.5;noise=0;}
+  lv.update=(dt,inp)=>{
+    t+=dt;cd=Math.max(0,cd-dt);
+    const sneak=!!inp.up;
+    steer(p,dt,inp,12,308,sneak?.4:1);poseFor(p,false);
+    if(!cat)return;
+    if(gone>0){gone-=dt;cat.update(dt,[],{right:true});if(gone<=0){si=(si+1)%spots.length;settle();}return;}
+    cat.t+=dt;cat.pose='sleep';
+    if(p.moving&&!sneak&&Math.abs(p.x-cat.x)<130)noise+=24*dt/p.calm;
+    noise=Math.max(0,noise-14*dt);
+    if(Math.random()<dt*.7)ftext(cat.x+6,cat.y-12,'z','#c9c3e8',5);
+    if(noise>=100)wakeUp();
+  };
+  lv.action=()=>{
+    if(!cat||gone>0||cd>0||p.busy>0)return;
+    if(Math.abs(cat.x-p.x)>p.reach+8){hint(p,'Kom tættere på');return;}
+    cd=.35;p.busy=.3;p.pose='clean';p.dir=cat.x>=p.x?1:-1;
+    noise+=(t-lastClip<.8?24:14)/p.calm;lastClip=t;
+    clips++;addProg(100/(per*order.length));tone({f:1800,dur:.03,vol:.04});ftext(cat.x,cat.y-14,'klik','#e9d9b8',5);
+    if(clips>=per){clips=0;ci++;ftext(cat.x,cat.y-22,'Færdig!',COPPER,6);if(ci<order.length){cat=new Cat(order[ci],0);si=(si+2)%spots.length;settle();}else cat=null;return;}
+    if(noise>=100)wakeUp();
+  };
+  lv.drawBack=g=>{if(cat&&!(gone>0&&cat.x>=300))dc(g,cat);drawHuman(g,p);};
+  lv.drawFront=()=>{};
+  lv.hud=g=>{bar(g,'STØJ',6,165,noise/100,'#ff6a55');txt(g,cat?`Kat ${ci+1}/2 · Kløer ${clips}/${per}`:'Alle kløer klippet',6,174,{size:5,align:'left'});};
+  return lv;
+}
+
+/* 14: Transportkassen */
+function makeO6(){
+  const plats=[{x:16,y:140,w:76},{x:220,y:138,w:30},{x:228,y:108,w:50}];
+  const CAR=128,p=mkPlayer(180),cats=[new Cat('fluffy',60),new Cat('nova',260)],inBox=[];
+  let carrying=null,wr=0,cd=0;
+  const fleeR=game.ownerKind==='kristian'?32:56,maxH=p.reach>12?60:26;
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(bgLiving),meterLabel:'I KASSEN'};
+  lv.update=(dt,inp)=>{
+    cd=Math.max(0,cd-dt);
+    const talk=!!(carrying&&inp.up);
+    steer(p,dt,inp,12,308,talk?.5:1);poseFor(p,!!carrying);
+    for(const c of cats){
+      if(inBox.includes(c)||c===carrying)continue;
+      if(Math.abs(c.x-p.x)<fleeR&&c.onGround)wander(c,dt,plats,{flee:p.x,fleeJump:c.kind==='fluffy'?2.5:1.2,speed:c.kind==='fluffy'?1.1:.9});
+      else wander(c,dt,plats,{jumpy:.25,speed:.7});
+    }
+    if(carrying){
+      const ex=p.look.tall||0;carrying.x=p.x+p.dir*8;carrying.y=p.y-18-ex;carrying.dir=p.dir;carrying.pose='carried';carrying.t+=dt;
+      wr+=(carrying.kind==='fluffy'?26:18)*dt;
+      if(talk){wr-=34*p.calm*dt;if(!p.bubble)p.say(pick(['Sååå, god mis…','Det er bare en tur…','Ingen dyrlæge… næsten.']),1.2);}
+      wr=Math.max(0,wr);
+      if(wr>=100){const c=carrying;carrying=null;wr=0;c.carried=null;c.knock(p.dir*-150,-170,.1);p.say('AV! Kløerne!',1.4);SFX.grab();shake(2);}
+    }
+  };
+  lv.action=()=>{
+    if(cd>0)return;cd=.3;
+    if(carrying){
+      if(Math.abs(p.x-CAR)<16){inBox.push(carrying);carrying.carried=null;carrying=null;wr=0;addProg(50);ftext(CAR,128,'Låst inde!',COPPER,6);SFX.grab();if(inBox.length<2)p.say('Én tilbage…',1.4);}
+      else hint(p,'Gå hen til kassen');
+      return;
+    }
+    let best=null,bd=1e9;for(const c of cats){if(inBox.includes(c))continue;const d=Math.abs(c.x-p.x);if(d<bd){bd=d;best=c;}}
+    if(!best||bd>p.reach+6){hint(p,'Snupper luft');return;}
+    if(FLOOR-best.y>maxH){hint(p,'Kan ikke nå!');return;}
+    carrying=best;best.carried=p;best.lie=false;wr=0;SFX.meow(best.kind==='nova'?.7:.9);ftext(best.x,best.y-20,'MRRAU?!','#ff6a55',6);
+  };
+  lv.drawBack=g=>{
+    R(g,CAR-14,138,28,22,OL);R(g,CAR-13,139,26,21,'#7f8a9a');R(g,CAR-13,139,26,3,'#9aa6b6');R(g,CAR-6,143,12,14,'#2a2a30');
+    inBox.forEach((c,i)=>{R(g,CAR-5+i*6,148,1,1,COPPER);R(g,CAR-3+i*6,148,1,1,COPPER);});
+    for(let x=CAR-6;x<CAR+6;x+=3)R(g,x,143,1,14,'#c0c6d0');
+    cats.forEach(c=>{if(!inBox.includes(c)&&c!==carrying)dc(g,c);});
+    drawHuman(g,p);if(carrying)dc(g,carrying);
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>{if(carrying)bar(g,'SPRÆLLEN',6,170,wr/100,'#ff6a55');};
+  return lv;
+}
+
+/* 15: Fodringstid */
+function makeO7(){
+  const COUNTER=298,BOWLS=[34,62],p=mkPlayer(296),cats=[new Cat('fluffy',200),new Cat('nova',150)],eating=[null,null];
+  let food=true,done=0,tripCD=0,fill=0,t=0;
+  const sp=p.calm>1?.85:1;
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(bgKitchen),meterLabel:'FODRET'};
+  lv.update=(dt,inp)=>{
+    t+=dt;tripCD=Math.max(0,tripCD-dt);
+    if(inp.jump&&p.jy===0&&p.busy<=0)p.jv=p.reach>12?-170:-150;
+    if(p.jv||p.jy){p.jv+=600*dt;p.jy+=p.jv*dt;if(p.jy>=0){p.jy=0;p.jv=0;}}
+    steer(p,dt,inp,12,308,p.jy<0?1.25:1);if(p.busy<=0)p.pose=food?'carry':p.moving?'walk':'stand';
+    p.y=FLOOR+p.jy;
+    if(fill>0){fill-=dt;if(fill<=0){food=true;ftext(p.x,p.y-50,'Fyldt!',COPPER,6);}}
+    cats.forEach((c,i)=>{
+      const e=eating.indexOf(c);
+      if(e>=0){if(Math.abs(c.x-BOWLS[e])>3)wander(c,dt,[],{target:BOWLS[e]});else{c.update(dt,[],{});c.pose='knead';}return;}
+      const tx=c.kind==='fluffy'?p.x+(Math.floor(t*1.6)%2?14:-14):p.x+p.dir*12;
+      wander(c,dt,[],{target:tx,speed:(c.kind==='fluffy'?1.2:.8)*sp});
+      if(food&&p.jy>-6&&p.moving&&tripCD<=0&&Math.abs(c.x-p.x)<6){
+        tripCD=1.6;food=false;p.busy=1.1;p.pose='fallen';p.y=FLOOR;p.jy=0;p.jv=0;
+        p.say(pick(['NEJ! Maden!',`${c.k.name}!!`,'Hvorfor står I ALTID der?!']),1.6);burst(p.x,FLOOR-3,['#8a5a3a','#a06c48'],14,60);SFX.splat();shake(2);
+      }
+    });
+  };
+  lv.action=()=>{
+    if(p.busy>0||p.jy<0||fill>0)return;
+    if(!food){if(p.x>=COUNTER-16){fill=.8;p.busy=.8;p.pose='stand';p.say('Ny portion…',1);}else hint(p,'Hent mad ved køkkenbordet');return;}
+    const b=BOWLS[done];
+    if(b!=null&&Math.abs(p.x-b)<p.reach+8){food=false;eating[done]=cats[done];done++;addProg(50);ftext(b,140,'Serveret!',COPPER,6);SFX.paw();}
+    else hint(p,'Skålene står til venstre');
+  };
+  lv.drawBack=g=>{
+    BOWLS.forEach((b,i)=>{R(g,b-7,154,14,6,OL);R(g,b-6,155,12,5,'#c8423a');if(i<done){R(g,b-5,152,10,3,'#8a5a3a');}});
+    cats.forEach(c=>dc(g,c));drawHuman(g,p);
+    if(food&&p.pose==='carry'){const ex=p.look.tall||0,x=p.x+p.dir*9;R(g,x-4,p.y-28-ex,9,4,OL);R(g,x-3,p.y-27-ex,7,2,'#c8423a');R(g,x-2,p.y-29-ex,5,1,'#8a5a3a');}
+  };
+  lv.drawFront=()=>{};
+  return lv;
+}
+
+/* 16: Badetid */
+function makeO8(){
+  const p=mkPlayer(126),order=['fluffy','nova'],sweet=['Sååå… god mis…','Du er så fin…','Bare lidt vand…','Ingen fare, skat…'];
+  let ci=0,cat=new Cat('fluffy',64),calmV=60,wet=0,cd=0,amok=0,doneT=0;
+  cat.y=136;cat.dir=1;
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(bgBath),meterLabel:'VASKET'};
+  lv.update=(dt,inp)=>{
+    cd=Math.max(0,cd-dt);amok=Math.max(0,amok-dt);p.busy=Math.max(0,p.busy-dt);p.dir=-1;p.x=126;
+    if(doneT>0){doneT-=dt;if(doneT<=0){ci++;if(ci<order.length){cat=new Cat(order[ci],64);cat.y=136;calmV=60;wet=0;}else cat=null;}return;}
+    if(!cat)return;
+    const talk=!!inp.up&&amok<=0;
+    if(talk){calmV+=22*p.calm*dt;if(!p.bubble)p.say(pick(sweet),1.2);}
+    calmV=Math.min(100,calmV-(cat.kind==='fluffy'?9:6)*dt);
+    if(p.busy<=0)p.pose=talk?'stand':'carry';
+    cat.t+=dt;cat.pose=amok>0?'jump':calmV<25?'stun':'idle';
+    cat.x=amok>0?64+Math.sin(game.t*30)*6:64;
+    if(amok>0&&Math.random()<dt*20)burst(64,128,['#6fb3d6','#cfeaf4'],2,80);
+    if(calmV<=0&&amok<=0){amok=1.6;calmV=55;wet=Math.max(0,wet-25);p.busy=1.6;p.pose='alert';p.say(pick(['AV AV AV!','Ikke kløerne!','Den går AMOK!']),1.6);ftext(64,108,'AMOK!','#ff6a55',9);shake(4);SFX.meow(.6);SFX.splat();}
+    game.irr=Math.min(100,(ci*100+wet)/order.length);
+  };
+  lv.action=()=>{
+    if(!cat||cd>0||amok>0||doneT>0)return;cd=.55;
+    wet=Math.min(100,wet+(p.reach>12?14:11));calmV-=18;p.pose='carry';p.busy=.3;SFX.splat();burst(cat.x,cat.y-14,['#6fb3d6','#cfeaf4'],8,40);ftext(cat.x,cat.y-24,'plask','#3f7fb5',5);
+    if(wet>=100){doneT=1.4;ftext(64,108,'Håndklæde!',COPPER,8);p.say(ci===0?'Én vasket. Én tilbage…':'Begge rene!',1.6);game.irr=Math.min(100,(ci+1)*100/order.length);}
+  };
+  lv.drawBack=g=>{
+    drawHuman(g,p);const ex=p.look.tall||0;
+    if(p.pose==='carry'){R(g,p.x-14,p.y-28-ex,5,5,OL);R(g,p.x-13,p.y-27-ex,3,3,'#3f7fb5');}
+    if(cat){dc(g,cat);if(wet>0)for(let i=0;i<wet/12;i++)R(g,cat.x-8+(i*7)%16,cat.y-16+(i*5)%8,1,2,'#6fb3d6');}
+  };
+  lv.drawFront=g=>drawTub(g,true);
+  lv.hud=g=>{bar(g,'RO',6,165,calmV/100,calmV<25?'#ff6a55':'#7fd48a');bar(g,'VÅD',6,172,wet/100,'#6fb3d6');};
+  return lv;
+}
+
+/* 17: Nus katten */
+function makeO9(){
+  const p=mkPlayer(136),order=['nova','fluffy'],CX=190,CY=150;
+  let ci=0,cat=new Cat('nova',CX),hand=150,purr=0,tol=0,annoy=0,stun=0,turnT=7,doneT=0,petting=false;
+  cat.y=CY;cat.dir=-1;
+  const hs=p.reach>12?70:50;
+  const lv={owner:true,plats:[],owners:[p],speakers:[p],bg:makeBg(bgLiving),meterLabel:'SPIND'};
+  function headOff(){const bw=cat.k.bodyW;return(bw-4+5-Math.floor((bw+1)/2))*2;}
+  function zone(){const rel=(hand-CX)*cat.dir,o=headOff();if(rel>=o-10&&rel<=o+10)return'hoved';if(rel>=-8)return'ryg';return'hale';}
+  function hiss(){ftext(CX,CY-46,'HVÆÆS!','#ff6a55',9);SFX.meow(.55);noise({dur:.4,vol:.12,lp:3000});shake(3);purr=Math.max(0,purr-20);tol=0;annoy=0;stun=1.4;p.say(pick(['Av! Okay, okay!','Det var for meget…','Ikke DER, nej.']),1.4);}
+  lv.update=(dt,inp)=>{
+    p.pose='carry';p.dir=1;stun=Math.max(0,stun-dt);
+    if(doneT>0){doneT-=dt;if(doneT<=0){ci++;if(ci<order.length){cat=new Cat(order[ci],CX);cat.y=CY;cat.dir=-1;purr=0;tol=0;annoy=0;turnT=7;}else cat=null;}return;}
+    if(!cat)return;
+    if(stun<=0){if(inp.left)hand-=hs*dt;if(inp.right)hand+=hs*dt;}
+    hand=Math.max(CX-40,Math.min(CX+40,hand));
+    petting=!!inp.up&&stun<=0;
+    const z=zone();
+    if(petting){
+      if(z==='hoved'){purr+=(18+(purr>50?5:0))*dt;tol+=24*dt/p.calm;}
+      else{annoy+=(z==='hale'?70:30)*dt/p.calm;if(Math.random()<dt*2)ftext(CX,CY-36,z==='hale'?'Ikke halen!':'Ryggen? Hm…','#ff6a55',5);}
+    }else{tol=Math.max(0,tol-30*dt);}
+    annoy=Math.max(0,annoy-(petting?0:20)*dt);
+    if(tol>=100||annoy>=100)hiss();
+    turnT-=dt;if(turnT<=0){turnT=6+Math.random()*3;cat.dir*=-1;ftext(CX,CY-36,'*vender sig*','#e9d9b8',5);}
+    cat.t+=dt;cat.pose=stun>0?'meow':purr>60&&petting?'knead':'idle';
+    if(petting&&z==='hoved'&&Math.random()<dt*2)ftext(CX+cat.dir*headOff(),CY-40,purr>60?'purrrr':'prr','#c9c3e8',5);
+    if(purr>=100){purr=100;doneT=1.6;ftext(CX,CY-48,'SPINDER!',COPPER,8);p.say(ci===0?'Én glad kat. Én tilbage…':'Begge spinder!',1.6);}
+    game.irr=Math.min(100,(ci*100+purr)/order.length);
+  };
+  lv.action=()=>{};
+  lv.drawBack=g=>{
+    drawHuman(g,p);
+    if(!cat)return;
+    g.save();g.translate(CX,CY);g.scale(2,2);drawCat(g,cat.kind,0,0,cat.dir,cat.pose,cat.t);g.restore();
+    const z=zone(),hy=CY-(z==='hoved'?34:24)+(petting?Math.round(Math.sin(game.t*14)):0)-(petting?0:6);
+    R(g,hand-4,hy-4,9,6,OL);R(g,hand-3,hy-3,7,4,p.look.skin);R(g,hand-3,hy+1,2,2,p.look.skin);R(g,hand+2,hy+1,2,2,p.look.skin);
+    if(p.look.watch)R(g,hand+3,hy-3,1,4,p.look.watch);
+  };
+  lv.drawFront=()=>{};
+  lv.hud=g=>{bar(g,'SUR',6,165,Math.max(tol,annoy)/100,'#ff6a55');txt(g,cat?`Hånden er over: ${zone()}`:'',6,174,{size:5,align:'left'});};
+  return lv;
+}
+
+/* ---------- level list ---------- */
+const LEVELS=[
+  {name:'Væk madslaverne',make:makeL1,time:65,hint:'Hop op i sengen!',
+    story:'Kl. 05:12. Skålen er tom, og madslaverne Kristian og Jakob sover stadig. Det kan ikke passe.',
+    mission:'Væk dem begge. Hop i sengen, træd på dynen, og mjav dem i ørerne. Natbordet har ting, der kan skubbes ned.',
+    warn:'Halvt i søvne skubber de dig ned fra sengen. Hold dig i bevægelse.',
+    tip:{fluffy:'Mr Fluffy kan hoppe direkte op på natbordet.',nova:'Nova når natbordet fra sengen. Hendes BUMP i sengen vækker mere.'}},
+  {name:'Bræk-fælden',make:makeL2,time:70,hint:'Kast op der, hvor han går!',
+    story:'Kristian har lige støvsuget. Det er en provokation.',
+    mission:'Tryk BALLADE for at kaste op. Når han træder i det, stiger irritationen. Tæppet giver bonus, og sofaen er endnu bedre.',
+    warn:'Ser han dig kaste op, bliver du båret ud. Hylden over lænestolen er sikker grund.',
+    tip:{fluffy:'Mr Fluffy kan løbe fra Kristian.',nova:'Nova er langsommere end Kristian. Flygt op på hylden.'}},
+  {name:'Tyngdekraft-test',make:makeL3,time:60,hint:'Skub tingene ud over kanten!',
+    story:'Jakob sidder i lænestolen med avisen. Bordet er fyldt med ting, der står alt for tæt på kanten.',
+    mission:'Skub tingene ud over kanten med BALLADE. Tyngdekraften skal jo testes. Hver ting, der går i stykker, irriterer.',
+    warn:'Når noget går i stykker, kommer Jakob. Står du på bordet, bliver du løftet ned.',
+    tip:{fluffy:'Mr Fluffy kan nå vasen på den høje hylde. Tunge ting kræver flere skub.',nova:'Nova vælter alt i ét skub, men kan ikke nå den høje hylde.'}},
+  {name:'Mjav ved madskålen',make:makeL4,time:55,hint:'Mjav ham i hovedet!',
+    story:'Skålen er halvfuld. For en kat er det det samme som tom. Kristian mener noget andet.',
+    mission:'Mjav tæt på Kristian, og vis ham den halvtomme skål, mens han kigger. Læg dig i vejen, når han går, så han snubler.',
+    warn:'Hans tålmodighed falder for hvert mjav. Når den er brugt op, bliver du båret ud. Den kommer langsomt igen.',
+    tip:{fluffy:'Mr Fluffy er hurtig nok til at nå foran ham igen og igen.',nova:'Nova giver mere irritation pr. mjav, så hun kan spare på tålmodigheden.'},
+    lose:'Kristian drak sin kaffe i fred. Skålen er stadig halvfuld.'},
+  {name:'Kradse i sofaen',make:makeL5,time:50,hint:'Krads, når han læser!',
+    story:'Jakob læser i lænestolen. Sofaen står helt ubeskyttet.',
+    mission:'Stå ved sofaen og tryk BALLADE for at kradse. Hvert krads irriterer.',
+    warn:'Når der kommer et ? over Jakob, kigger han op om et øjeblik. Kradser du, mens han kigger, jager han dig ud. Han kigger oftere og oftere.',
+    tip:{fluffy:'Mr Fluffy kan nå hylden, hvis Jakob jagter ham.',nova:'Nova kradser hårdere. Stop i tide, når ? dukker op.'},
+    lose:'Sofaen overlevede. Jakob læste sin artikel færdig.'},
+  {name:'Tastatur-sengen',make:makeL6,time:60,hint:'Læg dig på tastaturet!',
+    story:'Kristian arbejder hjemme, og snackskuffen er lukket. Tastaturet er varmt og har præcis den rigtige størrelse.',
+    mission:'Hop op på skrivebordet, stil dig på tastaturet og tryk BALLADE for at lægge dig. Stå foran skærmen, og skub hans ting ned. Bliv ved, til han holder pause og henter snacks.',
+    warn:'Han løfter dig ned, og han bliver hurtigere til det hver gang. Kom tilbage igen og igen.',
+    tip:{fluffy:'Mr Fluffy kan hoppe direkte op på skrivebordet.',nova:'Nova kommer op via papkassen til højre.'},
+    lose:'Kristian nåede sin deadline. Ingen pause, ingen snacks.'},
+  {name:'WoW-tiggeren',make:makeL7,time:55,hint:'Få raidet til at tabe!',
+    story:'Jakob er midt i et raid med headset på. Der står chips på skrivebordet. Du er ikke blevet tilbudt nogen.',
+    mission:'Prik ham på armen, læg dig på tastaturet, gå foran skærmen, og skub chipsene ned. Få raidet til at tabe, før bossen dør. Så er der snacks.',
+    warn:'Han kan ikke rejse sig midt i bossen, men han skubber dig ned fra skrivebordet, hvis du bliver for længe.',
+    tip:{fluffy:'Mr Fluffy er hurtigt oppe igen efter hvert skub.',nova:'Nova prikker hårdt. Brug papkassen for at komme op.'},
+    lose:'Bossen døde, og raidet vandt. Jakob er glad. Det er ikke godt.'},
+  {name:'Zoomies kl. 03',make:()=>makeL1(true),time:75,hint:'ZOOMIES! Løb fra væg til væg!',
+    story:'Klokken er 03:00. Noget i dig siger, at du skal løbe. Hurtigt. Nu.',
+    mission:'Du løber ekstra hurtigt. Løb fra væg til væg for ZOOM, hop i sengen, vælt ting ned fra kommoden og hylden, og mjav dem i ørerne.',
+    warn:'Om natten sover de tungt og falder hurtigt i søvn igen. Halvt i søvne skubber de dig ned.',
+    tip:{fluffy:'Mr Fluffy kan nå vasen på hylden over sengen.',nova:'Nova kommer op på kommoden via kurven.'},
+    lose:'Madslaverne sov videre. I morgen nat er der en ny chance.'},
+  {chapter:2,name:'Kattebakken',make:makeO1,time:60,hint:'Hold vejret og skovl!',keys:'← → gå · X skovl · hold Mellemrum: hold vejret',pad:{a:'SKOVL',b:'HOLD VEJRET'},
+    story:'Kattebakken skal tømmes. Igen. Mr Fluffy og Nova holder øje.',
+    mission:'Gå hen til bakken, hold vejret, og skovl klumperne op. Hver klump kræver tre skovlfulde.',
+    warn:'Løber du tør for luft, eller trækker du vejret tæt på bakken, kommer stanken. Gå væk for at få luft. Kattene kommer gerne med nye klumper.',
+    tip:{kristian:'Kristian er rolig, så stanken rammer ham lidt mindre.',jakob:'Jakob rækker langt og kan skovle fra lidt længere væk.'},
+    lose:'Bakken vandt. Den lugter stadig.'},
+  {chapter:2,name:'Fiskestangen',make:makeO2,time:45,hint:'Hold fuglen lavt, men løft i tide!',keys:'← → flyt fuglen · hold Mellemrum: løft fuglen · X ryk',pad:{a:'RYK',b:'LØFT'},
+    story:'Legetid med fiskestangen og fjerfuglen. Kattene har planer for den.',
+    mission:'Hold fuglen lavt nær kattene, så de leger. Når en kat vrikker med bagdelen, springer den. Løft fuglen i tide, så den ikke fanger den.',
+    warn:'Fanger en kat fuglen, falder legemåleren. En fugl helt deroppe tæller ikke som leg.',
+    tip:{kristian:'Kattene vrikker længere hos Kristian. Du får mere tid til at løfte.',jakob:'Jakob kan løfte fuglen højere op.'},
+    lose:'Kattene keder sig. Det er næsten værre.'},
+  {chapter:2,name:'Kattehår',make:makeO3,time:55,hint:'Rul hårene op!',keys:'← → gå · X fnugrulle · Mellemrum: sig nej',pad:{a:'RUL',b:'NEJ!'},
+    story:'Gæster om en time. Stuen er dækket af blå kattehår.',
+    mission:'Gå hen til hårtotterne, og fjern dem med fnugrullen. Kattene fælder nye, mens du arbejder.',
+    warn:'Kattene elsker dig og kæler op ad dine ben. Bliver tøjet fuldt af hår, skal du rulle dig selv. Sig nej for at holde dem væk.',
+    tip:{kristian:'Kattene holder sig længere væk, når Kristian siger nej.',jakob:'Sort tøj viser alt. Til gengæld rækker Jakob langt med rullen.'},
+    lose:'Gæsterne kom. De fik hår på bukserne.'},
+  {chapter:2,name:'Ormekuren',make:makeO4,time:50,hint:'Snacks først, pille bagefter!',keys:'← → gå · X snack · Mellemrum: snack med pille',pad:{a:'SNACK',b:'PILLE'},
+    story:'Begge katte skal have ormekur. De ved det godt.',
+    mission:'Gå hen til katten. Giv almindelige snacks, så den bliver tryg, og giv så snacken med pillen. Begge katte skal have pillen.',
+    warn:'Mistanken stiger for hver pille. Er den høj, spytter katten pillen ud. Der er kun 4 piller.',
+    tip:{kristian:'Kattene stoler på Kristian, så mistanken stiger langsommere.',jakob:'Jakob har lange arme og hurtige hænder.'},
+    lose:'Pillerne endte under køleskabet. Ormene vinder.'},
+  {chapter:2,name:'Kloklip',make:makeO5,time:60,hint:'List dig hen. Klip stille.',keys:'← → gå · hold Mellemrum: list · X klip',pad:{a:'KLIP',b:'LIST'},
+    story:'Kløerne er lange, og sofaen lider. Heldigvis sover kattene.',
+    mission:'List dig hen til den sovende kat, og klip 8 kløer på hver kat.',
+    warn:'Larm vækker katten: at gå normalt tæt på og at klippe for hurtigt. Vågner den, flytter den sig et nyt sted hen.',
+    tip:{kristian:'Kristian er rolig og larmer mindre.',jakob:'Jakob kan klippe fra lidt længere væk.'},
+    lose:'Kløerne er stadig lange. Sofaen ved det.'},
+  {chapter:2,name:'Transportkassen',make:makeO6,time:60,hint:'Fang katten, og put den i kassen!',keys:'← → gå · X tag / læg i kassen · hold Mellemrum: sød snak',pad:{a:'TAG',b:'SØD SNAK'},
+    story:'Dyrlægetid. Transportkassen står fremme, så kattene ved det allerede.',
+    mission:'Fang en kat, bær den hen til kassen, og læg den i. Begge katte skal med.',
+    warn:'Kattene flygter, når du kommer tæt på, og spræller, mens du bærer dem. Brug sød snak, ellers slipper de fri.',
+    tip:{kristian:'Kattene flygter først, når Kristian er helt tæt på. Men han kan ikke nå hylden.',jakob:'Jakob kan nå katte på hylden, men de flygter tidligt fra ham.'},
+    lose:'Tiden hos dyrlægen er aflyst. Kattene jubler.'},
+  {chapter:2,name:'Fodringstid',make:makeO7,time:45,hint:'Hop over kattene!',keys:'← → gå · Mellemrum hop · X server / hent mad',pad:{a:'SERVER',b:'HOP'},
+    story:'Du har maden. Kattene ved det. De vil være helt tæt på.',
+    mission:'Bær maden fra køkkenbordet hen til skålene til venstre. To skåle, to katte.',
+    warn:'Går du ind i en kat, snubler du og taber maden. Så må du hente ny ved køkkenbordet. Hop over dem.',
+    tip:{kristian:'Kattene er lidt roligere omkring Kristian.',jakob:'Jakob hopper højere og længere.'},
+    lose:'Maden ligger på gulvet. Kattene spiste den alligevel.'},
+  {chapter:2,name:'Badetid',make:makeO8,time:50,hint:'Snak sødt, og hæld vand!',keys:'hold Mellemrum: sød snak · X hæld vand',pad:{a:'HÆLD',b:'SØD SNAK'},
+    story:'Nogen rullede sig i noget. Kattene skal i bad.',
+    mission:'Hæld vand på katten, til den er helt våd. Hold den rolig med sød snak imens. Begge katte skal vaskes.',
+    warn:'Hvert hæld gør katten mindre rolig. Når roen er væk, går den amok, og du mister noget af vasken.',
+    tip:{kristian:'Kristians søde snak virker bedst.',jakob:'Jakob hælder mere vand ad gangen.'},
+    lose:'Badeværelset er vådt. Kattene er ikke.'},
+  {chapter:2,name:'Nus katten',make:makeO9,time:60,hint:'Kun hovedet! Hold pauser!',keys:'← → flyt hånden · hold Mellemrum: nus',pad:{a:'–',b:'NUS'},
+    story:'Det er hyggetid. Måske. Det bestemmer kattene.',
+    mission:'Flyt hånden hen over hovedet, og hold for at nusse. Få begge katte til at spinde.',
+    warn:'Kun hovedet er tilladt. Nusser du ryggen eller halen, eller nusser du for længe ad gangen, hvæser katten. Den vender sig også en gang imellem.',
+    tip:{kristian:'Kattene tåler længere nus fra Kristian.',jakob:'Jakob flytter hånden hurtigere.'},
+    lose:'Ingen spinden i dag. Kattene gik deres vej.'}
+];
+const SOON=[];
+
+/* ---------- menu attract scene ---------- */
+const menu={bg:null,plats:[{x:16,y:140,w:76},{x:220,y:138,w:30},{x:228,y:108,w:50}],cats:[]};
+function menuInit(){
+  menu.bg=makeBg(bgLiving);menu.cats=[new Cat('fluffy',130),new Cat('nova',186)];menu.cats[1].dir=-1;
+  menu.cats.forEach(c=>c.ai={t:Math.random(),l:false,r:false,j:false});
+}
+function menuUpdate(dt){
+  for(const c of menu.cats){
+    const a=c.ai;a.t-=dt;
+    if(a.t<=0){
+      const r=Math.random();a.l=a.r=false;
+      if(r<.33){a.l=true;a.t=.4+Math.random();}else if(r<.66){a.r=true;a.t=.4+Math.random();}
+      else{a.t=.8+Math.random()*1.6;if(Math.random()<.35)ftext(c.x+c.dir*8,c.y-20,'mjav',CREAM,5);}
+      a.j=Math.random()<.3;
+    }
+    c.update(dt,menu.plats,{left:a.l,right:a.r,jump:a.j,down:false});a.j=false;
+  }
+}
+
+/* ---------- input ---------- */
+const keys={left:false,right:false,down:false,up:false};
+const queued={jump:false,action:false};
+const KEYMAP={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowDown:'down',KeyS:'down'};
+const overlay=document.getElementById('overlay');
+addEventListener('keydown',e=>{
+  if(game.mode!=='play'){
+    if(e.code==='Escape'&&game.mode==='pause'){resume();e.preventDefault();return;}
+    if(e.code==='Enter'||e.code==='Space'){
+      const ae=document.activeElement;
+      if(ae&&ae.tagName==='BUTTON'&&overlay.contains(ae))return;
+      const p=overlay.querySelector('[data-primary]');if(p){e.preventDefault();p.click();}
+    }
+    return;
+  }
+  if(KEYMAP[e.code]){keys[KEYMAP[e.code]]=true;e.preventDefault();}
+  if(['Space','ArrowUp','KeyW'].includes(e.code)){if(!e.repeat)queued.jump=true;keys.up=true;e.preventDefault();}
+  if(['KeyX','KeyE','KeyJ','KeyK'].includes(e.code)){if(!e.repeat)queued.action=true;e.preventDefault();}
+  if(e.code==='KeyP'||e.code==='Escape'){pause();e.preventDefault();}
+});
+addEventListener('keyup',e=>{if(KEYMAP[e.code])keys[KEYMAP[e.code]]=false;if(['Space','ArrowUp','KeyW'].includes(e.code))keys.up=false;});
+addEventListener('blur',()=>{keys.left=keys.right=keys.down=keys.up=false;});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
+document.querySelectorAll('[data-pad]').forEach(b=>{
+  const k=b.dataset.pad;
+  const on=e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('on');audio();
+    if(k==='jump'){queued.jump=true;keys.up=true;}else if(k==='action')queued.action=true;else keys[k]=true;};
+  const off=()=>{b.classList.remove('on');if(k in keys)keys[k]=false;if(k==='jump')keys.up=false;};
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+});
+const touchy=matchMedia('(pointer: coarse)').matches;
+if(touchy)document.body.classList.add('touch');
+addEventListener('touchstart',()=>document.body.classList.add('touch'),{once:true,passive:true});
+
+const btnSound=document.getElementById('btnSound'),btnPause=document.getElementById('btnPause');
+function soundLabel(){btnSound.textContent=save.mute?'Lyd: fra':'Lyd: til';}
+soundLabel();
+btnSound.addEventListener('click',e=>{save.mute=!save.mute;persist();soundLabel();if(!save.mute)SFX.meow();e.currentTarget.blur();});
+document.getElementById('btnHome').addEventListener('click',e=>{e.currentTarget.blur();keys.left=keys.right=keys.down=keys.up=false;goTitle();});
+btnPause.addEventListener('click',e=>{e.currentTarget.blur();if(game.mode==='play')pause();else if(game.mode==='pause')resume();});
+
+/* ---------- screens ---------- */
+function show(html){overlay.innerHTML=html;overlay.hidden=false;const p=overlay.querySelector('[data-primary]');if(p&&!document.body.classList.contains('touch'))p.focus({preventScroll:true});}
+function hide(){overlay.hidden=true;overlay.innerHTML='';}
+overlay.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled)return;audio();act(b.dataset.act,b.dataset.arg);});
+function act(a,arg){
+  if(a==='select')goSelect();
+  else if(a==='pick'){save.cat=arg;game.catKind=arg;persist();SFX.meow(arg==='nova'?.85:1.15);goLevels();}
+  else if(a==='levels')goLevels();
+  else if(a==='brief')goBrief(+arg);
+  else if(a==='start')startPlay();
+  else if(a==='retry'){loadLevel(game.li);startPlay();}
+  else if(a==='next')goBrief(game.li+1);
+  else if(a==='resume')resume();
+  else if(a==='title')goTitle();
+  else if(a==='owner')goOwner(null);
+  else if(a==='pickOwner'){save.owner=arg;game.ownerKind=arg;persist();if(pendingBrief!=null){const i=pendingBrief;pendingBrief=null;goBrief(i);}else goLevels();}
+}
+const starStr=n=>[0,1,2].map(i=>i<n?'★':'<span class="off">★</span>').join('');
+function goTitle(){game.mode='title';game.level=null;setControls(null);
+  show(`<div class="screen"><p class="eyebrow">Et spil om Mr Fluffy &amp; Nova</p><h1>MADSLAVERNE</h1>
+  <p class="lede">Du er en blå british shorthair. Dine mennesker skal irriteres, indtil de giver dig mad.</p>
+  <div class="row"><button class="btn" data-act="select" data-primary>Spil</button></div></div>`);}
+function goSelect(){game.mode='select';
+  const card=k=>{const c=CATS[k];return `<button class="catcard${game.catKind===k?' sel':''}" data-act="pick" data-arg="${k}" ${game.catKind===k?'data-primary':''}>
+    <canvas data-cat="${k}" width="200" height="100"></canvas><span class="nm">${c.name}</span><span class="ds">${c.blurb}</span>
+    ${Object.entries(c.stats).map(([n,v])=>`<span class="stat"><span>${n}</span><span class="pips">${[1,2,3,4,5].map(i=>`<i class="${i<=v?'on':''}"></i>`).join('')}</span></span>`).join('')}
+  </button>`;};
+  show(`<div class="screen"><p class="eyebrow">Vælg din kat</p><div class="cats">${card('fluffy')}${card('nova')}</div></div>`);
+  overlay.querySelectorAll('canvas[data-cat]').forEach(c=>{const g=c.getContext('2d');g.setTransform(5,0,0,5,0,0);R(g,0,15,40,5,'#2a2842');drawCat(g,c.dataset.cat,20,16,1,'idle',0.5);});
+}
+let pendingBrief=null;
+function goOwner(i){game.mode='select';pendingBrief=i;
+  const card=k=>{const c=OWNERS[k],sel=save.owner===k||(!OWNERS[save.owner]&&k==='jakob');return `<button class="catcard${sel?' sel':''}" data-act="pickOwner" data-arg="${k}" ${sel?'data-primary':''}>
+    <canvas data-owner="${k}" width="200" height="160" style="aspect-ratio:5/4"></canvas><span class="nm">${c.name}</span><span class="ds">${c.blurb}</span>
+    ${Object.entries(c.stats).map(([n,v])=>`<span class="stat"><span>${n}</span><span class="pips">${[1,2,3,4,5].map(x=>`<i class="${x<=v?'on':''}"></i>`).join('')}</span></span>`).join('')}</button>`;};
+  show(`<div class="screen"><p class="eyebrow">Kapitel 2 · Vælg din madslave</p><div class="cats">${card('kristian')}${card('jakob')}</div></div>`);
+  overlay.querySelectorAll('canvas[data-owner]').forEach(c=>{const g=c.getContext('2d');g.setTransform(3,0,0,3,0,0);R(g,0,51,70,3,'#2a2842');drawHuman(g,new Owner('',OWNERS[c.dataset.owner].look,33,51));});
+}
+function goLevels(){game.mode='levels';game.level=null;setControls(null);
+  const tile=(L,i)=>{const lock=i+1>save.unlocked,st=save.stars[i+1]||0;
+    return `<button class="lvl" data-act="brief" data-arg="${i}" ${lock?'disabled':''} ${i===Math.min(save.unlocked,LEVELS.length)-1?'data-primary':''}>
+      <span class="num">BANE ${i+1}</span><span class="nm">${L.name}</span>${lock?'<span class="soon">Låst</span>':`<span class="st">${starStr(st)}</span>`}</button>`;};
+  const all=LEVELS.map(tile),own=OWNERS[save.owner];
+  const ch2=save.unlocked>=9?(own?` · ${own.name} <button class="btn ghost mini" data-act="owner">Skift madslave</button>`:''):' · låses op efter bane 8';
+  show(`<div class="screen"><h2>Vælg bane</h2>
+    <p class="eyebrow">Kapitel 1 · Kattenes tur · ${catName()} <button class="btn ghost mini" data-act="select">Skift kat</button></p><div class="levels">${all.slice(0,8).join('')}</div>
+    <p class="eyebrow">Kapitel 2 · Madslavernes tur${ch2}</p><div class="levels">${all.slice(8).join('')}</div></div>`);
+}
+function loadLevel(i){
+  game.li=i;const d=LEVELS[i];game.irr=0;game.time=d.time;game.texts=[];game.fx=[];game.ending=null;game.introT=0;game.lastTick=99;
+  game.level=d.make();game.cat=new Cat(game.catKind,game.level.spawnX??160);game.cat.speedMul=game.level.catSpeed||1;
+}
+function goBrief(i){
+  if(i>=LEVELS.length){goLevels();return;}
+  if(LEVELS[i].chapter===2&&!OWNERS[save.owner]){goOwner(i);return;}
+  game.ownerKind=save.owner;
+  loadLevel(i);game.mode='brief';const d=LEVELS[i];setControls(d);
+  const ctl=document.body.classList.contains('touch')?(d.pad?`◀ ▶ · ${d.pad.b} · ${d.pad.a}`:'◀ ▶ løb · HOP · BALLADE!'):(d.keys||'← → løb · Mellemrum hop · X ballade · ↓ hop ned');
+  show(`<div class="screen light"><div class="brief"><p class="eyebrow">Bane ${i+1} · ${d.chapter===2?ownerK().name:catName()}</p><h2>${d.name}</h2>
+    <p class="lede">${d.story}</p>
+    <dl><dt>MISSION</dt><dd>${d.mission}</dd><dt>PAS PÅ</dt><dd>${d.warn}</dd><dt>TIP</dt><dd>${d.chapter===2?d.tip[game.ownerKind]:d.tip[game.catKind]}</dd><dt>TASTER</dt><dd class="dim">${ctl}</dd></dl>
+    <div class="row"><button class="btn" data-act="start" data-primary>Start</button><button class="btn ghost" data-act="levels">Baner</button></div></div></div>`);
+}
+let KEYS_DEFAULT=null;
+function setControls(d){
+  const el=document.getElementById('keys');if(KEYS_DEFAULT===null)KEYS_DEFAULT=el.innerHTML;
+  el.innerHTML=d&&d.keys?d.keys.replace(/(←|→|Mellemrum|X)/g,'<kbd>$1</kbd>')+' · <kbd>P</kbd> pause':KEYS_DEFAULT;
+  document.querySelector('[data-pad=action]').textContent=d&&d.pad?d.pad.a:'BALLADE!';
+  document.querySelector('[data-pad=jump]').textContent=d&&d.pad?d.pad.b:'HOP';
+}
+function padLabels(){setControls(LEVELS[game.li]);}
+function startPlay(){game.mode='play';hide();queued.jump=queued.action=false;padLabels();}
+function pause(){if(game.mode!=='play')return;game.mode='pause';keys.left=keys.right=keys.down=keys.up=false;
+  show(`<div class="screen"><h2>Pause</h2><p class="dim">Madslaverne venter. Det gør de altid.</p>
+  <div class="row"><button class="btn" data-act="resume" data-primary>Fortsæt</button><button class="btn ghost" data-act="retry">Start forfra</button><button class="btn ghost" data-act="levels">Baner</button><button class="btn ghost" data-act="title">Hjem</button></div></div>`);}
+function resume(){if(game.mode!=='pause')return;game.mode='play';hide();}
+function finish(){
+  const win=game.ending.win,d=LEVELS[game.li],id=game.li+1;
+  const irr=Math.round(game.level.irritation?game.level.irritation():game.irr);
+  const tl=Math.ceil(game.time),ts=`${Math.floor(tl/60)}:${String(tl%60).padStart(2,'0')}`;
+  game.mode='result';
+  if(win){
+    const r=game.time/d.time,st=r>=.45?3:r>=.2?2:1;
+    save.stars[id]=Math.max(save.stars[id]||0,st);save.unlocked=Math.max(save.unlocked,Math.min(LEVELS.length,id+1));persist();
+    const last=game.li===LEVELS.length-1,ch1end=game.li===7;
+    show(`<div class="screen"><p class="eyebrow">Bane ${id} · ${d.name}</p><h2>Mission klaret!</h2><div class="stars" aria-label="${st} af 3 stjerner">${starStr(st)}</div>
+      <p class="dim">Tid tilbage: ${ts}. Tre stjerner kræver mindst ${Math.ceil(d.time*.45)} sekunder tilbage.</p>
+      ${ch1end?'<p class="lede">Kattene fik snacks, og madslaverne sov videre på sofaen. Nyt kapitel er låst op: Madslavernes tur!</p>':''}${last?'<p class="lede">Kattene er rene, mætte, ormefri og spinder. Madslaverne har fortjent en lur. Tak fordi du spillede. Til Mr Fluffy &amp; Nova.</p>':''}
+      <div class="row">${last?'<button class="btn" data-act="levels" data-primary>Baner</button>':('<button class="btn" data-act="next" data-primary>'+(ch1end?'Næste kapitel':'Næste bane')+'</button>')}
+      <button class="btn ghost" data-act="retry">Prøv igen</button>${last?'':'<button class="btn ghost" data-act="levels">Baner</button>'}</div></div>`);
+  }else{
+    show(`<div class="screen"><p class="eyebrow">Bane ${id} · ${d.name}</p><h2>Tiden løb ud</h2>
+      <p class="lede">Du nåede ${irr} % ${d.chapter===2?'af opgaven':'irritation'}. ${d.lose||'Madslaverne slap for denne gang.'}</p>
+      <div class="row"><button class="btn" data-act="retry" data-primary>Prøv igen</button><button class="btn ghost" data-act="levels">Baner</button></div></div>`);
+  }
+}
+
+/* ---------- loop ---------- */
+function meow(cat){
+  if(cat.cool>0)return;cat.cool=.5;cat.busy=.2;cat.busyPose='meow';SFX.meow(cat.kind==='nova'?.85:1.15);
+  ftext(cat.x+cat.dir*8,cat.y-20,'Mjav!');if(game.level.onMeow)game.level.onMeow(cat);
+}
+function carryUpdate(dt){
+  const cat=game.cat;
+  for(const o of game.level.owners){
+    if(!o.carry)continue;const done=o.walkTo(o.carry.x,44,dt);o.pose='carry';
+    cat.x=o.x+o.dir*8;cat.y=o.y-18-(o.look.tall||0);cat.dir=o.dir;
+    if(done){cat.carried=null;cat.y=FLOOR;cat.vy=0;cat.onGround=true;cat.ground=null;cat.stun=.5;cat.kvx=0;const f=o.carry.done;o.carry=null;o.pose='stand';o.moving=false;if(f)f();}
+  }
+}
+function update(dt){
+  game.t+=dt;game.shake=Math.max(0,game.shake-dt*12);
+  if(game.mode==='play'){
+    const lv=game.level,cat=game.cat;
+    lv.owners.forEach(o=>o.t+=dt);
+    if(lv.owner){
+      const inp=game.ending?{}:{left:keys.left,right:keys.right,down:keys.down,jump:queued.jump,up:keys.up};
+      lv.update(dt,inp);
+      if(!game.ending&&queued.action)lv.action(inp);
+    }else{
+      const inp=game.ending?{}:{left:keys.left,right:keys.right,down:keys.down,jump:queued.jump,sfx:true};
+      cat.update(dt,lv.plats,inp);
+      if(!game.ending&&queued.action&&!cat.carried&&cat.stun<=0&&cat.busy<=0){if(!lv.action(cat))meow(cat);}
+      lv.update(dt,cat);carryUpdate(dt);
+    }
+    for(const s of lv.speakers)if(s.bubble){s.bubble.t-=dt;if(s.bubble.t<=0)s.bubble=null;}
+    game.introT+=dt;
+    if(!game.ending){
+      game.time-=dt;const irr=lv.irritation?lv.irritation():game.irr;
+      if(game.time<=5&&game.time>0){const s=Math.ceil(game.time);if(s!==game.lastTick){game.lastTick=s;SFX.tick();}}
+      if(irr>=100){game.ending={win:true,t:2.2};lv.onWin&&lv.onWin();SFX.win();burst(cat.x,cat.y-10,[COPPER,CREAM,'#ffd34a'],18,80);}
+      else if(game.time<=0){game.time=0;game.ending={win:false,t:1.8};SFX.lose();}
+    }else{game.ending.t-=dt;if(game.ending.t<=0)finish();}
+  }else if(game.mode==='title'||game.mode==='select'||game.mode==='levels')menuUpdate(dt);
+  for(const t of game.texts){t.t-=dt;t.y-=12*dt;}game.texts=game.texts.filter(t=>t.t>0);
+  for(const p of game.fx){p.t-=dt;p.vy+=300*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;}game.fx=game.fx.filter(p=>p.t>0);
+  queued.jump=queued.action=false;
+}
+function drawHUD(g){
+  const d=LEVELS[game.li],lv=game.level;
+  g.fillStyle='rgba(20,18,32,.82)';g.fillRect(0,0,W,15);
+  txt(g,`${game.li+1}. ${d.name}`,5,8,{size:7,align:'left',outline:null});
+  const irr=lv.irritation?lv.irritation():game.irr,mx=124,mw=84;
+  R(g,mx-1,3,mw+2,9,OL);R(g,mx,4,mw,7,'#3b3858');R(g,mx,4,Math.round(mw*irr/100),7,irr>=100?'#7fd48a':COPPER);R(g,mx,4,Math.round(mw*irr/100),1,'#f6c47c');
+  txt(g,lv.meterLabel||'IRRITATION',mx+mw/2,8,{size:5,outline:OL});
+  const tl=Math.ceil(game.time),ts=`${Math.floor(tl/60)}:${String(tl%60).padStart(2,'0')}`;
+  const red=game.time<=10&&!game.ending;
+  txt(g,ts,W-5,8,{size:8,align:'right',outline:null,col:red&&Math.floor(game.t*4)%2?'#ff6a55':CREAM});
+  if(lv.hud)lv.hud(g);
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;
+  const sx=game.shake?Math.round((Math.random()*2-1)*game.shake):0,sy=game.shake?Math.round((Math.random()*2-1)*game.shake):0;
+  ctx.setTransform(S,0,0,S,sx*S,sy*S);
+  const inLevel=game.level&&['brief','play','pause','result'].includes(game.mode);
+  if(inLevel){
+    const lv=game.level,cat=game.cat;
+    ctx.drawImage(lv.bg,0,0,W,H);
+    lv.drawBack(ctx);if(!lv.owner)drawCat(ctx,cat.kind,cat.x,cat.y,cat.dir,cat.pose,cat.t);lv.drawFront(ctx);
+    if(lv.tint){ctx.fillStyle=lv.tint;ctx.fillRect(-4,-4,W+8,H+8);}
+  }else{
+    if(!menu.bg)menuInit();
+    ctx.drawImage(menu.bg,0,0,W,H);for(const c of menu.cats)drawCat(ctx,c.kind,c.x,c.y,c.dir,c.pose,c.t);
+  }
+  for(const p of game.fx)R(ctx,p.x,p.y,2,2,p.c);
+  for(const t of game.texts)txt(ctx,t.s,t.x,t.y,{size:t.size,col:t.col,alpha:Math.min(1,t.t*2)});
+  if(inLevel){
+    for(const s of game.level.speakers)if(s.bubble)bubble(ctx,bubbleX(s),bubbleY(s),s.bubble.text);
+    ctx.setTransform(S,0,0,S,0,0);
+    if(game.mode==='play'||game.mode==='pause'){
+      drawHUD(ctx);
+      if(game.mode==='play'&&game.introT<4&&!game.ending)txt(ctx,LEVELS[game.li].hint,W/2,32,{size:9,col:COPPER,alpha:Math.min(1,(4-game.introT)*1.5)});
+      if(game.ending)txt(ctx,game.ending.win?'MISSION KLARET!':'TIDEN ER GÅET!',W/2,70,{size:16,col:game.ending.win?COPPER:'#ff6a55'});
+    }
+  }
+}
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);render();requestAnimationFrame(frame);}
+goTitle();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
